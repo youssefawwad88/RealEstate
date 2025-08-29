@@ -1,0 +1,133 @@
+# UAE market data configuration
+# Keys and structure for market research data lookup
+
+market:
+  # Market data sources and keys
+  data_sources:
+    primary: "uae_market_research"
+    dubai_land_department: "dld_api"
+    abu_dhabi_government: "adgm_data"
+    update_frequency: "monthly"
+    
+  # Geographic market segments
+  locations:
+    dubai_downtown:
+      name: "Dubai Downtown"
+      tier: 1
+      demand_score: 5
+      liquidity_score: 5
+    dubai_marina:
+      name: "Dubai Marina"
+      tier: 1
+      demand_score: 5
+      liquidity_score: 5
+    dubai_jlt:
+      name: "Jumeirah Lake Towers"
+      tier: 1
+      demand_score: 4
+      liquidity_score: 4
+    dubai_jvc:
+      name: "Jumeirah Village Circle"
+      tier: 2
+      demand_score: 4
+      liquidity_score: 4
+    abu_dhabi_corniche:
+      name: "Abu Dhabi Corniche"
+      tier: 1
+      demand_score: 4
+      liquidity_score: 4
+    abu_dhabi_yas:
+      name: "Yas Island"
+      tier: 1
+      demand_score: 5
+      liquidity_score: 4
+    sharjah_al_majaz:
+      name: "Al Majaz, Sharjah"
+      tier: 2
+      demand_score: 3
+      liquidity_score: 3
+    ajman_corniche:
+      name: "Ajman Corniche"
+      tier: 2
+      demand_score: 3
+      liquidity_score: 3
+
+  # Data categories and keys for lookup
+  data_keys:
+    # Land pricing (AED per sqm)
+    land_comps:
+      - "land_comp_min_aed"
+      - "land_comp_avg_aed"
+      - "land_comp_max_aed"
+      - "land_per_buildable_aed"
+      
+    # Sale pricing (AED per sqft and sqm)
+    sale_prices:
+      - "sale_price_min_aed_sqft"
+      - "sale_price_avg_aed_sqft"
+      - "sale_price_max_aed_sqft"
+      - "sale_price_avg_aed_sqm"
+      - "price_per_buildable_aed"
+      
+    # Construction costs (AED per sqm)
+    construction_costs:
+      - "construction_cost_min_aed"
+      - "construction_cost_avg_aed"
+      - "construction_cost_max_aed"
+      - "mep_cost_premium_pct"    # MEP premium for UAE climate
+      - "soft_cost_pct_typical"
+      
+    # Market indicators
+    market_indicators:
+      - "absorption_rate_units_month"
+      - "land_gdv_benchmark_pct"
+      - "profit_margin_benchmark_pct"
+      - "demand_score"
+      - "liquidity_score"
+      - "volatility_score"
+      - "rental_yield_pct"
+      - "off_plan_sales_pct"
+      - "investor_ratio_pct"
+      - "last_updated"
+
+  # Validation thresholds for market data
+  validation:
+    land_price_variance_threshold: 0.40    # 40% variance warning
+    sale_price_variance_threshold: 0.25    # 25% variance warning
+    cost_escalation_annual_max: 0.10       # 10% maximum annual cost increase
+    data_freshness_months: 3               # Data older than 3 months flagged
+    
+  # Default values when market data unavailable
+  fallback_values:
+    land_comp_avg_aed_sqm: 1200            # 1200 AED per sqm default
+    sale_price_avg_aed_sqm: 8500           # 8500 AED per sqm default  
+    sale_price_avg_aed_sqft: 790           # 790 AED per sqft default
+    construction_cost_avg_aed_sqm: 3200    # 3200 AED per sqm default
+    absorption_rate: 4.5                   # 4.5 units per month
+    profit_margin_benchmark: 0.15          # 15% profit margin
+    rental_yield: 0.055                    # 5.5% rental yield
+
+# Market research integration settings
+integration:
+  api_endpoints:
+    dld_transactions: "https://dubailand.gov.ae/api/v1/transactions"
+    property_finder: "https://api.propertyfinder.ae/v2/market-data"
+    bayut_trends: "https://api.bayut.com/v1/trends"
+    reidin_data: "https://api.reidin.com/v1/uae-market"
+    
+  refresh_schedule:
+    automatic_refresh: true
+    refresh_interval_hours: 12     # More frequent in active UAE market
+    weekend_refresh: true          # UAE weekend is Fri-Sat
+    
+  data_quality:
+    min_comparable_count: 8        # Minimum 8 comparables (active market)
+    max_data_age_days: 90          # Maximum 90 days old
+    confidence_threshold: 0.85     # 85% confidence requirement
+    
+  # UAE-specific data considerations
+  local_factors:
+    expo2020_legacy_adjustment: true    # Adjust for Expo 2020 impact areas
+    seasonal_demand_patterns: true     # Account for seasonal fluctuations
+    ramadan_market_slowdown: true      # Account for Ramadan market patterns
+    golden_visa_impact: true           # Include golden visa program effects

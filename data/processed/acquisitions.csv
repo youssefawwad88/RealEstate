@@ -1,0 +1,3 @@
+site_name,land_area_sqm,asking_price,zoning,far,coverage,max_floors,efficiency_ratio,expected_sale_price_psm,construction_cost_psm,soft_cost_pct,profit_target_pct,taxes_fees
+Example Site Downtown,1200,600000,Mixed-use Residential,1.5,0.4,4,0.85,4000,2000,0.15,0.20,30000
+Suburban Plot B,2000,450000,Residential,1.2,0.35,3,0.90,3200,1600,0.12,0.18,20000
