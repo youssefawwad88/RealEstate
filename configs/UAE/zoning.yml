@@ -1,0 +1,130 @@
+# UAE zoning classifications and development parameters
+# Based on UAE building codes and emirate-specific regulations
+
+zoning:
+  # Dubai zones
+  G_PLUS_4:
+    name: "Ground Plus 4 Floors (Dubai)"
+    far_max: 2.5
+    coverage_max: 0.75
+    height_max_m: 25
+    floors_max: 5
+    setback_front_m: 6
+    setback_side_m: 3
+    setback_rear_m: 6
+    parking_ratio: 1.5
+    
+  G_PLUS_9:
+    name: "Ground Plus 9 Floors (Dubai)"
+    far_max: 5.0
+    coverage_max: 0.80
+    height_max_m: 45
+    floors_max: 10
+    setback_front_m: 8
+    setback_side_m: 4
+    setback_rear_m: 8
+    parking_ratio: 1.2
+    
+  HIGH_RISE:
+    name: "High Rise Development (Dubai)"
+    far_max: 8.0
+    coverage_max: 0.85
+    height_max_m: 150
+    floors_max: 40
+    setback_front_m: 12
+    setback_side_m: 6
+    setback_rear_m: 12
+    parking_ratio: 1.0
+    
+  # Abu Dhabi zones
+  R1_AD:
+    name: "Low Rise Residential (Abu Dhabi)"
+    far_max: 1.8
+    coverage_max: 0.65
+    height_max_m: 18
+    floors_max: 4
+    setback_front_m: 5
+    setback_side_m: 3
+    setback_rear_m: 5
+    parking_ratio: 1.8
+    
+  R2_AD:
+    name: "Mid Rise Residential (Abu Dhabi)"  
+    far_max: 3.5
+    coverage_max: 0.70
+    height_max_m: 35
+    floors_max: 9
+    setback_front_m: 6
+    setback_side_m: 4
+    setback_rear_m: 6
+    parking_ratio: 1.5
+    
+  # Commercial zones
+  RETAIL:
+    name: "Retail Commercial"
+    far_max: 3.0
+    coverage_max: 0.90
+    height_max_m: 20
+    floors_max: 4
+    setback_front_m: 3
+    setback_side_m: 2
+    setback_rear_m: 3
+    parking_ratio: 4.0  # per 100 sqm
+    
+  OFFICE:
+    name: "Office Commercial"
+    far_max: 6.0
+    coverage_max: 0.85
+    height_max_m: 80
+    floors_max: 20
+    setback_front_m: 8
+    setback_side_m: 5
+    setback_rear_m: 8
+    parking_ratio: 2.5  # per 100 sqm
+    
+  # Mixed use
+  MIXED_USE:
+    name: "Mixed Use Development"
+    far_max: 7.0
+    coverage_max: 0.80
+    height_max_m: 100
+    floors_max: 25
+    setback_front_m: 10
+    setback_side_m: 5
+    setback_rear_m: 10
+    parking_ratio: 1.3
+    residential_component_min: 0.20
+
+# UAE-specific design standards
+design_standards:
+  efficiency_ratios:
+    residential: 0.87      # High efficiency in UAE developments
+    commercial: 0.92       # Very high efficiency for commercial
+    mixed_use: 0.89        # High efficiency for mixed use
+    retail: 0.94           # Maximum efficiency for retail
+    
+  accessibility:
+    elevator_required_floors: 3    # Buildings over 2 floors need elevators
+    disabled_access_required: true
+    fire_stairs_required_floors: 2
+    emergency_generator_required: true
+    
+  environmental:
+    green_building_incentives: true
+    dubai_green_building_code: true
+    estidama_rating_abu_dhabi: true  # Abu Dhabi sustainability program
+    energy_efficiency_mandatory: true
+    solar_orientation_requirements: true
+    insulation_requirements: "ASHRAE 90.1 adapted for hot climate"
+    
+  # UAE-specific requirements
+  cultural_considerations:
+    prayer_room_required_sqm: 500  # Prayer room required for buildings >500sqm
+    gender_separated_facilities: true
+    halal_food_requirements: true
+    
+  technical:
+    structural_wind_load: 1.5       # kN/m² for wind load calculations  
+    seismic_zone: 0                 # Not seismically active
+    max_ambient_temp_design: 50     # 50°C design temperature
+    humidity_design_pct: 90         # 90% humidity design consideration

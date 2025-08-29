@@ -1,0 +1,80 @@
+# UAE financial parameters and development economics
+# Market-specific profit targets and cost benchmarks
+
+finance:
+  # Profit target ranges by development type
+  profit_targets:
+    residential_dubai: 0.12         # 12% for Dubai residential (competitive market)
+    residential_abu_dhabi: 0.15     # 15% for Abu Dhabi residential  
+    residential_northern_emirates: 0.18  # 18% for northern emirates
+    commercial_dubai: 0.14          # 14% for Dubai commercial
+    commercial_abu_dhabi: 0.16      # 16% for Abu Dhabi commercial
+    retail_dubai: 0.10              # 10% for Dubai retail (high competition)
+    mixed_use: 0.16                 # 16% for mixed-use projects
+    luxury_residential: 0.20        # 20% for luxury developments
+    
+  # Soft cost benchmarks as percentage of hard costs
+  soft_costs:
+    architectural_design: 0.05      # 5% for architectural services
+    engineering_mep: 0.06           # 6% for MEP (crucial in UAE climate)
+    permits_approvals: 0.015        # 1.5% for permits (efficient system)
+    legal_fees: 0.01                # 1% for legal services
+    marketing_sales: 0.04           # 4% for marketing (competitive market)
+    financing_costs: 0.025          # 2.5% for construction financing
+    project_management: 0.025       # 2.5% for project management
+    contingency: 0.04               # 4% contingency (well-established market)
+    authority_connections: 0.015    # 1.5% for DEWA, municipality connections
+    total_soft_cost_pct: 0.14       # 14% total soft costs
+    
+  # Construction financing parameters
+  construction_finance:
+    typical_interest_rate: 0.055    # 5.5% construction loan rate
+    loan_to_cost_ratio: 0.70        # 70% loan-to-cost (conservative)
+    interest_reserve_months: 24     # 24 months interest reserve
+    origination_fee: 0.01           # 1% origination fee
+    
+  # Sales and marketing assumptions
+  sales:
+    absorption_rate_units_month: 4.5  # 4.5 units per month (good market)
+    presale_requirement_pct: 0.50     # 50% presales required (off-plan regulation)
+    sales_commission_rate: 0.02       # 2% sales commission
+    price_escalation_annual: 0.03     # 3% annual price appreciation
+    handover_payment_pct: 0.40        # 40% payment on handover
+    
+  # Development timeline assumptions
+  timeline:
+    planning_design_months: 4       # 4 months (efficient approvals)
+    permitting_months: 2            # 2 months for permits (fast-track)
+    construction_months: 20         # 20 months construction
+    sales_marketing_months: 18      # 18 months sales and marketing
+    total_project_months: 26        # 26 months total project timeline
+    
+  # Payment plan structure (common in UAE)
+  payment_plans:
+    during_construction_pct: 0.60   # 60% during construction
+    on_handover_pct: 0.40           # 40% on handover
+    post_handover_months: 0         # No post-handover payments typically
+
+# Risk factors and adjustments
+risk_factors:
+  market_volatility_adjustment: 0.015  # 1.5% for market volatility
+  regulatory_risk_premium: 0.005      # 0.5% (stable regulatory environment)
+  currency_risk_adjustment: 0.005     # 0.5% (AED pegged to USD)
+  liquidity_discount: 0.02            # 2% discount for market liquidity
+  expo_impact_bonus: -0.01           # -1% bonus for Expo 2020 legacy areas
+  
+# UAE-specific financial considerations
+market_factors:
+  off_plan_sales_typical_pct: 0.70   # 70% of sales are off-plan
+  investor_buyer_pct: 0.45           # 45% investor buyers vs end users
+  foreign_buyer_pct: 0.60            # 60% foreign buyers
+  cash_buyer_pct: 0.35               # 35% cash transactions
+  
+# Benchmarking standards
+benchmarks:
+  land_cost_gdv_typical: 0.18        # 18% land cost as % of GDV (lower than global)
+  land_cost_gdv_maximum: 0.25        # 25% maximum acceptable
+  debt_service_coverage_min: 1.30    # Minimum 1.30x DSCR
+  return_on_equity_target: 0.15      # 15% target ROE
+  rental_yield_residential: 0.055    # 5.5% typical rental yield
+  rental_yield_commercial: 0.075     # 7.5% typical commercial yield

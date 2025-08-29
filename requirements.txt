@@ -10,3 +10,4 @@ flake8>=6.0.0
 jupyter>=1.0.0
 notebook>=6.5.0
 nbqa>=1.7.0
+pyyaml>=6.0.0
