@@ -248,13 +248,11 @@ try:
         
         else:
             st.info("No deals found in the pipeline.")
-            st.markdown("**Get started by adding your first deal!**")
-            st.page_link("pages/1_Add_Deal.py", label="➕ Add Deal")
+            st.markdown("**Get started by adding your first deal using the Add Deal page!**")
     
     else:
         st.info("No acquisitions data found.")
-        st.markdown("**Get started by adding your first deal!**")
-        st.page_link("pages/1_Add_Deal.py", label="➕ Add Deal")
+        st.markdown("**Get started by adding your first deal using the Add Deal page!**")
 
 except Exception as e:
     st.error(f"Error loading pipeline data: {e}")

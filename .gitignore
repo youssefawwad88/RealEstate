@@ -149,6 +149,8 @@ Thumbs.db
 
 # Data files (raw data should not be tracked)
 data/raw/
+data/processed/*.csv
+data/backups/*.csv
 *.csv.bak
 *.xlsx.bak
 

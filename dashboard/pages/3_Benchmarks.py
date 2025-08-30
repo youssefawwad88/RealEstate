@@ -15,7 +15,8 @@ sys.path.append(str(project_root))
 try:
     from utils.io import load_csv, get_data_dir
     from utils.scoring import format_currency
-    from modules.market_lookup import load_market_data, get_market_summary
+    from utils.market_loader import load_market_data, get_available_cities
+    from modules.market_lookup import get_market_summary
 except ImportError as e:
     st.error(f"Import error: {e}")
     st.info("Make sure you're running from the project root directory")
@@ -25,14 +26,10 @@ st.markdown("Explore market research data and benchmarks by city.")
 
 # Load market research data
 try:
-    market_research_path = get_data_dir() / "processed" / "market_research.csv"
+    market_df = load_market_data()
+    st.success(f"Loaded market data for {len(market_df)} cities.")
     
-    if market_research_path.exists():
-        market_df = load_csv(market_research_path)
-        
-        st.success(f"Loaded market data for {len(market_df)} cities.")
-        
-        # City selection
+    # City selection
         available_cities = sorted(market_df['city_key'].unique().tolist())
         selected_city = st.selectbox("Select City", available_cities, index=0)
         
@@ -244,21 +241,19 @@ try:
             # Raw data view
             with st.expander("📋 Raw Market Data"):
                 st.json(export_data)
-    
-    else:
-        st.error("Market research data not found.")
-        st.info("Expected file: data/processed/market_research.csv")
-        
-        # Show example of expected data structure
-        st.subheader("Expected Data Structure")
-        st.code("""
-        city_key,land_comp_min,land_comp_avg,land_comp_max,sale_price_min,sale_price_avg,sale_price_max,construction_cost_min,construction_cost_avg,construction_cost_max,soft_cost_pct_typical,absorption_rate,land_gdv_benchmark,profit_margin_benchmark,demand_score,liquidity_score,volatility_score,last_updated
-        toronto,300,500,800,4000,5200,7500,1800,2200,3000,0.16,3.8,24.0,18.0,5,4,4,2024-01-15
-        """)
-
+                
 except Exception as e:
-    st.error(f"Error loading market data: {e}")
-    st.info("Please check your data files and try again.")
+    st.error("Market research data not found.")
+    st.info("Expected file: data/reference/market_research.csv")
+    
+    # Show example of expected data structure
+    st.subheader("Expected Data Structure")
+    st.code("""
+    city_key,land_comp_min,land_comp_avg,land_comp_max,sale_price_min,sale_price_avg,sale_price_max,construction_cost_min,construction_cost_avg,construction_cost_max,soft_cost_pct_typical,absorption_rate,land_gdv_benchmark,profit_margin_benchmark,demand_score,liquidity_score,volatility_score,last_updated
+    toronto,300,500,800,4000,5200,7500,1800,2200,3000,0.16,3.8,24.0,18.0,5,4,4,2024-01-15
+    """)
+
+    st.info(f"Debug error: {e}")
 
 # Footer with helpful info
 st.markdown("---")
