@@ -295,6 +295,7 @@ class TestSmokeTests:
         import tempfile
         import shutil
         import sys
+        import importlib
         
         with tempfile.TemporaryDirectory() as temp_dir:
             # Copy dashboard to temp directory
@@ -302,21 +303,32 @@ class TestSmokeTests:
             shutil.copytree(Path(__file__).parent.parent / "dashboard", temp_dashboard)
             
             # Remove Home page
-            (temp_dashboard / "pages" / "0_Home.py").unlink()
+            home_file = temp_dashboard / "pages" / "0_Home.py"
+            home_file.unlink()
+            
+            # Verify file is actually removed
+            assert not home_file.exists(), "Home file should be removed"
             
             # Test import doesn't crash
             sys.path.insert(0, str(temp_dashboard))
             
             try:
-                from streamlit_app import pages
-                # Should have 4 pages instead of 5 (missing Home)
-                assert len(pages) == 4, "Should have 4 pages when Home is missing"
+                # Force reload to avoid cached modules
+                if 'streamlit_app' in sys.modules:
+                    del sys.modules['streamlit_app']
+                    
+                import streamlit_app
+                importlib.reload(streamlit_app)
                 
-                # Verify no Home page is loaded
-                home_titles = [p.title for p in pages if "Dashboard" in p.title or "Home" in p.title]
-                assert len(home_titles) == 0, "Should not have Dashboard/Home page when file is missing"
+                # Now check that it properly detected the missing page
+                assert "0_Home.py" in streamlit_app.missing, f"Should track 0_Home.py as missing, missing={streamlit_app.missing}"
+                assert "0_Home.py" not in streamlit_app.found, f"Should not track 0_Home.py as found, found={streamlit_app.found}"
+                assert len(streamlit_app.pages) == 4, f"Should have 4 pages when Home is missing, got {len(streamlit_app.pages)}"
                 
             finally:
+                # Clean up sys.modules to avoid side effects
+                if 'streamlit_app' in sys.modules:
+                    del sys.modules['streamlit_app']
                 sys.path.pop(0)
     
     def test_benchmarks_available_cities_when_data_present(self):
@@ -383,3 +395,14 @@ class TestSmokeTests:
             assert hasattr(streamlit_app, 'nav'), "Should have nav attribute"
         finally:
             sys.path.pop(0)
+
+    def test_benchmarks_imports_cleanly(self):
+        """Test that 3_Benchmarks.py can be imported without syntax errors."""
+        # Import without executing Streamlit graphically: just syntax check
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "bench", "dashboard/pages/3_Benchmarks.py"
+        )
+        mod = importlib.util.module_from_spec(spec)
+        # This will raise SyntaxError or IndentationError if file has issues
+        spec.loader.exec_module(mod)
