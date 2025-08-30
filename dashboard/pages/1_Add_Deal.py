@@ -15,9 +15,10 @@ sys.path.append(str(project_root))
 
 try:
     from modules.deal_model import create_deal_from_dict
-    from modules.market_lookup import get_available_cities, get_market_summary
+    from modules.market_lookup import get_market_summary
     from utils.scoring import get_color_indicator, format_currency
     from utils.io import load_csv, save_csv, get_data_dir
+    from utils.market_loader import load_market_data, get_available_cities
 except ImportError as e:
     st.error(f"Import error: {e}")
     st.info("Make sure you're running from the project root directory")
@@ -27,13 +28,7 @@ st.markdown("Enter new land acquisition deals and analyze their viability.")
 
 # City selection from market research data
 try:
-    market_research_path = get_data_dir() / "processed" / "market_research.csv"
-    if market_research_path.exists():
-        market_df = load_csv(market_research_path)
-        available_cities = sorted(market_df['city_key'].unique().tolist())
-    else:
-        # Fallback to built-in cities
-        available_cities = get_available_cities()
+    available_cities = get_available_cities()
 except Exception:
     available_cities = ["toronto", "vancouver", "dubai_downtown", "default"]
 
@@ -144,15 +139,15 @@ with st.form("deal_input_form"):
             with col2:
                 # Breakeven vs market check (target >85% of market avg)
                 try:
-                    if market_research_path.exists():
-                        market_row = market_df[market_df['city_key'] == selected_city]
-                        if not market_row.empty:
-                            market_avg = market_row.iloc[0]['sale_price_avg']
-                            breakeven_ratio = deal.outputs.breakeven_sale_price / market_avg
-                            if breakeven_ratio <= 0.85:
-                                st.success(f"🟢 Breakeven Risk: {breakeven_ratio:.1%} of market (Good)")
-                            elif breakeven_ratio <= 0.95:
-                                st.warning(f"🟡 Breakeven Risk: {breakeven_ratio:.1%} of market (Medium)")
+                    market_df = load_market_data()
+                    market_row = market_df[market_df['city_key'] == selected_city]
+                    if not market_row.empty:
+                        market_avg = market_row.iloc[0]['sale_price_avg']
+                        breakeven_ratio = deal.outputs.breakeven_sale_price / market_avg
+                        if breakeven_ratio <= 0.85:
+                            st.success(f"🟢 Breakeven Risk: {breakeven_ratio:.1%} of market (Good)")
+                        elif breakeven_ratio <= 0.95:
+                            st.warning(f"🟡 Breakeven Risk: {breakeven_ratio:.1%} of market (Medium)")
                             else:
                                 st.error(f"🔴 Breakeven Risk: {breakeven_ratio:.1%} of market (High)")
                         else:

@@ -6,6 +6,7 @@ Contains functions for data intake and initial processing.
 from typing import Dict, Any, Optional
 import pandas as pd
 from pathlib import Path
+from utils.filelock import locked_file_write
 
 
 def collect_land_inputs() -> Dict[str, Any]:
@@ -77,7 +78,7 @@ def validate_inputs(inputs: Dict[str, Any]) -> Dict[str, Any]:
 
 def save_inputs_to_csv(inputs: Dict[str, Any], file_path: Optional[str] = None) -> str:
     """
-    Save inputs to CSV file for tracking.
+    Save inputs to CSV file for tracking with file locking and backup.
 
     Args:
         inputs: Validated inputs dictionary
@@ -88,19 +89,24 @@ def save_inputs_to_csv(inputs: Dict[str, Any], file_path: Optional[str] = None) 
     """
     if file_path is None:
         file_path = Path(__file__).parent.parent / "data" / "processed" / "acquisitions.csv"
+    
+    file_path = Path(file_path)
 
     # Convert to DataFrame
-    df = pd.DataFrame([inputs])
+    new_df = pd.DataFrame([inputs])
 
-    # Ensure directory exists
-    Path(file_path).parent.mkdir(parents=True, exist_ok=True)
+    # Use locked file write with backup
+    with locked_file_write(file_path) as locked_path:
+        # Load existing data if file exists
+        if locked_path.exists():
+            existing_df = pd.read_csv(locked_path)
+            combined_df = pd.concat([existing_df, new_df], ignore_index=True)
+        else:
+            combined_df = new_df
 
-    # Append to existing file or create new
-    if Path(file_path).exists():
-        existing_df = pd.read_csv(file_path)
-        df = pd.concat([existing_df, df], ignore_index=True)
-
-    df.to_csv(file_path, index=False)
+        # Write the combined data
+        combined_df.to_csv(locked_path, index=False)
+    
     return str(file_path)
 
 

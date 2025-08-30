@@ -12,6 +12,18 @@ from .io import (
     get_data_dir,
 )
 
+from .market_loader import (
+    load_market_data,
+    get_available_cities,
+)
+
+from .filelock import (
+    FileLock,
+    FileLockError,
+    locked_file_write,
+    cleanup_old_backups,
+)
+
 from .scoring import (
     score_deal_viability,
     get_color_indicator,
@@ -79,6 +91,16 @@ __all__ = [
     "save_json",
     "get_project_root",
     "get_data_dir",
+    
+    # Market data utilities
+    "load_market_data",
+    "get_available_cities",
+    
+    # File locking utilities
+    "FileLock",
+    "FileLockError", 
+    "locked_file_write",
+    "cleanup_old_backups",
     
     # Scoring utilities
     "score_deal_viability",

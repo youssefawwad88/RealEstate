@@ -108,10 +108,47 @@ This leads to:
 4. **Access the dashboard:**
    - Open your browser to `http://localhost:8501`
    - Use the sidebar to navigate between pages:
+     - **Dashboard**: Overview and quick stats
      - **Add Deal**: Enter new land deals and analyze viability
      - **Pipeline**: View and filter your deal pipeline
      - **Benchmarks**: Explore market research and benchmarks
      - **Configs**: View configuration settings (optional)
+
+---
+
+## Run in Colab (with public URL)
+
+You can run TerraFlow directly in Google Colab and make it publicly accessible:
+
+### 1. Start Streamlit in headless mode:
+```bash
+!streamlit run dashboard/streamlit_app.py --server.headless true --server.port 8501 &
+```
+
+### 2. Create public tunnel with Cloudflared:
+```bash
+# Install cloudflared
+!wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+!dpkg -i cloudflared-linux-amd64.deb
+
+# Create tunnel (runs in background)
+!cloudflared tunnel --url http://localhost:8501 --no-autoupdate &
+```
+
+The tunnel will provide a public `https://xxx.trycloudflare.com` URL that you can share.
+
+**Alternative with LocalTunnel:**
+```bash
+!npm install -g localtunnel
+!lt --port 8501 --subdomain myterraflow
+```
+
+*Note: LocalTunnel may require password authentication. Check the tunnel output for the password if prompted.*
+
+**Runtime Requirements:**
+Copy/paste works for a fresh Colab runtime with the requirements from `requirements.txt`.
+
+---
 
 ### Running Tests
 

@@ -2,6 +2,16 @@
 
 Thank you for your interest in contributing to TerraFlow! This document provides guidelines for contributing to the project.
 
+## Data Files & Merge Safety
+
+**Important:** Do not commit processed CSVs; use reference data only.
+
+- `data/reference/` contains canonical data files that should be committed
+- `data/processed/` contains generated/local override files - these are ignored by git 
+- `data/backups/` contains automatic backups - these are also ignored by git
+
+This prevents merge conflicts when multiple developers work with different data.
+
 ## Getting Started
 
 ### Prerequisites
