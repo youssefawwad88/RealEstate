@@ -14,14 +14,24 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Navigation with absolute paths
-pages = [
-    st.Page(str(Path(__file__).parent/"pages"/"0_Home.py"), title="Dashboard", icon="🏠"),
-    st.Page(str(Path(__file__).parent/"pages"/"1_Add_Deal.py"), title="Add Deal", icon="📝"),
-    st.Page(str(Path(__file__).parent/"pages"/"2_Pipeline.py"), title="Pipeline", icon="📊"),
-    st.Page(str(Path(__file__).parent/"pages"/"3_Benchmarks.py"), title="Benchmarks", icon="📈"),
-    st.Page(str(Path(__file__).parent/"pages"/"4_Configs_Viewer.py"), title="Configs", icon="⚙️"),
-]
+BASE_DIR = Path(__file__).parent
+PAGES_DIR = BASE_DIR / "pages"
+
+pages = []
+
+def add_page(filename: str, title: str, icon: str):
+    path = PAGES_DIR / filename
+    if path.exists():
+        pages.append(st.Page(str(path), title=title, icon=icon))
+
+# Home (optional but recommended)
+add_page("0_Home.py", "Dashboard", "🏠")
+
+# Core pages
+add_page("1_Add_Deal.py", "Add Deal", "📝")
+add_page("2_Pipeline.py", "Pipeline", "📊")
+add_page("3_Benchmarks.py", "Benchmarks", "📈")
+add_page("4_Configs_Viewer.py", "Configs", "⚙️")
 nav = st.navigation(pages)
 nav.run()
 

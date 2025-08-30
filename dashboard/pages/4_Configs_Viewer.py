@@ -176,7 +176,7 @@ try:
                                         
                                         if location_data:
                                             locations_df = pd.DataFrame(location_data)
-                                            st.dataframe(locations_df, hide_index=True, use_container_width=True)
+                                            st.dataframe(locations_df, hide_index=True, width="stretch")
                             
                             # Export functionality
                             st.subheader("📥 Export Configuration")
@@ -226,7 +226,7 @@ try:
                     
                     if file_info:
                         files_df = pd.DataFrame(file_info)
-                        st.dataframe(files_df, hide_index=True, use_container_width=True)
+                        st.dataframe(files_df, hide_index=True, width="stretch")
         
         else:
             st.info("No configuration directories found.")

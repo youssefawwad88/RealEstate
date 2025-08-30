@@ -30,10 +30,10 @@ try:
     st.success(f"Loaded market data for {len(market_df)} cities.")
     
     # City selection
-        available_cities = sorted(market_df['city_key'].unique().tolist())
-        selected_city = st.selectbox("Select City", available_cities, index=0)
-        
-        if selected_city:
+    available_cities = sorted(market_df['city_key'].unique().tolist())
+    selected_city = st.selectbox("Select City", available_cities, index=0)
+    
+    if selected_city:
             # Filter data for selected city
             city_data = market_df[market_df['city_key'] == selected_city].iloc[0]
             
@@ -221,7 +221,7 @@ try:
                     for col in ['Land Price Avg', 'Sale Price Avg', 'Construction Cost Avg']:
                         comparison_display[col] = comparison_display[col].apply(format_currency)
                     
-                    st.dataframe(comparison_display, use_container_width=True, hide_index=True)
+                    st.dataframe(comparison_display, width="stretch", hide_index=True)
             
             # Market research data export
             st.subheader("📥 Export Market Data")
