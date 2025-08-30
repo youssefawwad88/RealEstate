@@ -84,6 +84,148 @@ This leads to:
 
 ---
 
+## Run Locally / Deploy
+
+### Local Development
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/youssefawwad88/RealEstate.git
+   cd RealEstate
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   pip install -r dev-requirements.txt
+   ```
+
+3. **Run the Streamlit dashboard:**
+   ```bash
+   streamlit run dashboard/streamlit_app.py
+   ```
+
+4. **Access the dashboard:**
+   - Open your browser to `http://localhost:8501`
+   - Use the sidebar to navigate between pages:
+     - **Add Deal**: Enter new land deals and analyze viability
+     - **Pipeline**: View and filter your deal pipeline
+     - **Benchmarks**: Explore market research and benchmarks
+     - **Configs**: View configuration settings (optional)
+
+### Running Tests
+
+```bash
+# Run all tests
+python -m pytest tests/ -v
+
+# Run specific test file
+python -m pytest tests/test_dashboard.py -v
+
+# Run with coverage
+python -m pytest tests/ --cov=modules --cov=utils
+```
+
+### Deploy to Streamlit Cloud
+
+1. Fork this repository to your GitHub account
+2. Go to [share.streamlit.io](https://share.streamlit.io)
+3. Connect your GitHub account
+4. Deploy from `dashboard/streamlit_app.py`
+5. Set Python version to 3.9+ in advanced settings
+
+### Deploy to Other Platforms
+
+**Vercel:**
+- Add `vercel.json` with Python runtime configuration
+- Set build command to install dependencies
+- Configure start command: `streamlit run dashboard/streamlit_app.py --server.port $PORT`
+
+**Heroku:**
+- Add `Procfile`: `web: streamlit run dashboard/streamlit_app.py --server.port $PORT --server.address 0.0.0.0`
+- Add `setup.sh` for Streamlit configuration
+- Ensure Python version 3.9+ in `runtime.txt`
+
+**Docker:**
+```dockerfile
+FROM python:3.9-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+EXPOSE 8501
+CMD ["streamlit", "run", "dashboard/streamlit_app.py"]
+```
+
+---
+
+## Dashboard Features
+
+### 🏞️ Add Deal
+- Enter site information (name, area, asking price, zoning)
+- Configure development parameters (FAR, coverage, efficiency)
+- Set market assumptions (sale price, construction costs, profit targets)
+- Analyze deal viability with real-time calculations
+- View color-coded viability flags:
+  - 🟢 Green: Viable deals (good land % GDV, reasonable breakeven)
+  - 🟡 Yellow: Marginal deals (need attention)
+  - 🔴 Red: Not recommended (high risk)
+- Save deals to pipeline
+
+### 📊 Pipeline
+- View all deals in filterable table
+- Filter by city, date range, and viability score
+- See portfolio metrics and deal distribution
+- Download pipeline data as CSV
+- Analyze deals with scatter plots and charts
+
+### 📊 Benchmarks
+- Explore market research data by city
+- View pricing benchmarks (land, sale prices, construction costs)
+- Compare market health indicators (demand, liquidity, volatility)
+- Multi-city comparison charts
+- Export market data for external analysis
+
+### ⚙️ Configs Viewer
+- View system configuration files (optional)
+- Browse country-specific settings
+- Explore zoning regulations and financial parameters
+- Export configurations as JSON or YAML
+
+---
+
+## Data Structure
+
+### Input Data Files
+
+**Market Research** (`data/processed/market_research.csv`):
+```csv
+city_key,land_comp_avg,sale_price_avg,construction_cost_avg,demand_score,liquidity_score,...
+toronto,500,5200,2200,5,4,...
+vancouver,400,6000,2400,5,3,...
+```
+
+**Acquisitions** (`data/processed/acquisitions.csv`):
+- Populated automatically when deals are saved from Add Deal page
+- Contains all deal inputs and calculated outputs
+- Used by Pipeline page for filtering and analysis
+
+### Configuration Files (Optional)
+
+```
+configs/
+├── UAE/
+│   ├── country.yml      # Country-specific settings
+│   ├── finance.yml      # Lending and cost parameters  
+│   ├── zoning.yml       # Zoning regulations
+│   └── market.yml       # Market data sources
+├── JO/
+└── default/
+    └── global.yml       # Global defaults
+```
+
+---
+
 ## Collaboration Rules
 - Keep core logic in `/modules` & `/utils`
 - Notebooks are orchestration only
