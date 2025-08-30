@@ -169,7 +169,7 @@ try:
                 # Show the table
                 st.dataframe(
                     display_df[final_display_cols], 
-                    use_container_width=True,
+                    width="stretch",
                     hide_index=True
                 )
                 

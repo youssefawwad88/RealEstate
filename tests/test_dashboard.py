@@ -271,3 +271,115 @@ class TestPipelineFilteringFunctionality:
         
         assert len(green_deals) == 2
         assert all(deal['overall_score'] == 'green' for _, deal in green_deals.iterrows())
+
+
+class TestSmokeTests:
+    """Smoke tests for navigation and benchmarks as requested."""
+    
+    def test_streamlit_app_navigation_builds_pages(self):
+        """Test that importing dashboard/streamlit_app.py builds a non-empty pages list."""
+        import sys
+        dashboard_path = Path(__file__).parent.parent / "dashboard"
+        sys.path.insert(0, str(dashboard_path))
+        
+        try:
+            from streamlit_app import pages
+            assert len(pages) > 0, "Pages list should not be empty"
+            # Should have at least the core pages
+            assert len(pages) >= 4, "Should have at least 4 pages (Add Deal, Pipeline, Benchmarks, Configs)"
+        finally:
+            sys.path.pop(0)
+    
+    def test_navigation_handles_missing_home_page(self):
+        """Test that navigation does not raise when 0_Home.py is missing."""
+        import tempfile
+        import shutil
+        import sys
+        
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Copy dashboard to temp directory
+            temp_dashboard = Path(temp_dir) / "dashboard"
+            shutil.copytree(Path(__file__).parent.parent / "dashboard", temp_dashboard)
+            
+            # Remove Home page
+            (temp_dashboard / "pages" / "0_Home.py").unlink()
+            
+            # Test import doesn't crash
+            sys.path.insert(0, str(temp_dashboard))
+            
+            try:
+                from streamlit_app import pages
+                # Should have 4 pages instead of 5 (missing Home)
+                assert len(pages) == 4, "Should have 4 pages when Home is missing"
+                
+                # Verify no Home page is loaded
+                home_titles = [p.title for p in pages if "Dashboard" in p.title or "Home" in p.title]
+                assert len(home_titles) == 0, "Should not have Dashboard/Home page when file is missing"
+                
+            finally:
+                sys.path.pop(0)
+    
+    def test_benchmarks_available_cities_when_data_present(self):
+        """Test that Benchmarks helper returns non-empty available_cities when reference CSV is present."""
+        import sys
+        sys.path.append(str(Path(__file__).parent.parent))
+        
+        try:
+            from utils.market_loader import load_market_data
+            
+            # Load market data
+            market_df = load_market_data()
+            
+            # Should have data
+            assert market_df is not None, "Market data should not be None"
+            assert len(market_df) > 0, "Market data should have rows"
+            
+            # Should have city_key column
+            assert 'city_key' in market_df.columns, "Should have city_key column"
+            
+            # Get available cities (similar to benchmarks page)
+            available_cities = sorted(market_df['city_key'].unique().tolist())
+            
+            # Should have cities
+            assert len(available_cities) > 0, "Should have available cities"
+            assert isinstance(available_cities, list), "Available cities should be a list"
+            
+        except Exception as e:
+            pytest.fail(f"Benchmarks data loading failed: {e}")
+    
+    def test_use_container_width_not_in_dataframe_calls(self):
+        """Test that use_container_width is not present in dataframe calls (string scan)."""
+        dashboard_path = Path(__file__).parent.parent / "dashboard"
+        
+        # Search for use_container_width in dataframe calls
+        problematic_files = []
+        
+        for py_file in dashboard_path.rglob("*.py"):
+            if py_file.name.startswith("streamlit_app_old"):
+                continue  # Skip old files
+                
+            content = py_file.read_text()
+            
+            # Check for dataframe calls with use_container_width
+            lines = content.split('\n')
+            for i, line in enumerate(lines, 1):
+                if 'st.dataframe' in line and 'use_container_width' in line:
+                    problematic_files.append(f"{py_file.relative_to(dashboard_path)}:{i}")
+                elif '.dataframe(' in line and 'use_container_width' in line:
+                    problematic_files.append(f"{py_file.relative_to(dashboard_path)}:{i}")
+        
+        assert len(problematic_files) == 0, f"Found dataframe calls with use_container_width: {problematic_files}"
+    
+    def test_streamlit_app_imports_successfully(self):
+        """Test that streamlit_app.py can be imported without errors."""
+        import sys
+        dashboard_path = Path(__file__).parent.parent / "dashboard"
+        sys.path.insert(0, str(dashboard_path))
+        
+        try:
+            # This should not raise any ImportError or IndentationError
+            import streamlit_app
+            assert hasattr(streamlit_app, 'pages'), "Should have pages attribute"
+            assert hasattr(streamlit_app, 'nav'), "Should have nav attribute"
+        finally:
+            sys.path.pop(0)
