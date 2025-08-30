@@ -29,7 +29,8 @@ Thank you for your interest in contributing to TerraFlow! This document provides
 
 4. **Install development dependencies**
    ```bash
-   pip install pytest-cov nbqa pre-commit
+   pip install -r dev-requirements.txt
+   pip install pre-commit
    ```
 
 5. **Set up pre-commit hooks** (optional but recommended)
