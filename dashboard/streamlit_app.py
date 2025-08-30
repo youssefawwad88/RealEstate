@@ -16,11 +16,11 @@ st.set_page_config(
 
 # Navigation with absolute paths
 pages = [
-    st.Page(str(Path(__file__).parent/"pages"/"0_Home.py"), "Dashboard", icon="🏠"),
-    st.Page(str(Path(__file__).parent/"pages"/"1_Add_Deal.py"), "Add Deal", icon="📝"),
-    st.Page(str(Path(__file__).parent/"pages"/"2_Pipeline.py"), "Pipeline", icon="📊"),
-    st.Page(str(Path(__file__).parent/"pages"/"3_Benchmarks.py"), "Benchmarks", icon="📈"),
-    st.Page(str(Path(__file__).parent/"pages"/"4_Configs_Viewer.py"), "Configs", icon="⚙️"),
+    st.Page(str(Path(__file__).parent/"pages"/"0_Home.py"), title="Dashboard", icon="🏠"),
+    st.Page(str(Path(__file__).parent/"pages"/"1_Add_Deal.py"), title="Add Deal", icon="📝"),
+    st.Page(str(Path(__file__).parent/"pages"/"2_Pipeline.py"), title="Pipeline", icon="📊"),
+    st.Page(str(Path(__file__).parent/"pages"/"3_Benchmarks.py"), title="Benchmarks", icon="📈"),
+    st.Page(str(Path(__file__).parent/"pages"/"4_Configs_Viewer.py"), title="Configs", icon="⚙️"),
 ]
 nav = st.navigation(pages)
 nav.run()
