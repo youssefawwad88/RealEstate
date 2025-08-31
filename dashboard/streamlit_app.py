@@ -18,8 +18,10 @@ st.set_page_config(
 APP_DIR = Path(__file__).parent              # /.../dashboard
 PAGES_DIR = APP_DIR / "pages"                # /.../dashboard/pages
 
-# For diagnostics in cloud logs
-st.write(f"[Nav] APP_DIR={APP_DIR} | PAGES_DIR exists={PAGES_DIR.exists()} | Files={sorted([p.name for p in PAGES_DIR.glob('*.py')])}")
+# For diagnostics in cloud logs - only show in debug mode
+DEBUG = False  # must be False in prod
+if DEBUG:
+    st.write(f"[Nav] APP_DIR={APP_DIR} | PAGES_DIR exists={PAGES_DIR.exists()} | Files={sorted([p.name for p in PAGES_DIR.glob('*.py')])}")
 
 def add_page(filename: str, title: str, icon: str):
     """
