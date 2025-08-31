@@ -12,11 +12,8 @@ from .io import (
     get_data_dir,
 )
 
-from .market_loader import (
-    load_market_benchmarks,
-    filter_allowed_markets,
-    get_available_cities,
-)
+# Market loader functions should be imported directly from utils.market_loader
+# to avoid circular imports
 
 from .filelock import (
     FileLock,
@@ -93,10 +90,10 @@ __all__ = [
     "get_project_root",
     "get_data_dir",
     
-    # Market data utilities
-    "load_market_benchmarks",
-    "filter_allowed_markets",
-    "get_available_cities",
+    # Market data utilities - import directly from utils.market_loader
+    # "load_market_benchmarks",
+    # "filter_allowed_markets", 
+    # "get_available_cities",
     
     # File locking utilities
     "FileLock",

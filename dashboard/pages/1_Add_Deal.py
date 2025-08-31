@@ -198,15 +198,15 @@ with st.form("deal_input_form"):
             k8.metric("🚀 Absorption / mo (sqm)", f"{out.est_absorption_rate_per_month:,.0f}")
             
             # Only set session state after successful analysis
-            st.session_state['deal'] = out
+            st.session_state['analysis'] = out
             st.session_state['deal_ready'] = True
             
         except Exception as e:
             st.error(f"Analysis failed: {e}")
             st.info("Please check your inputs and try again.")
-            # Clear deal session state on failure
-            if 'deal' in st.session_state:
-                del st.session_state['deal']
+            # Clear analysis session state on failure
+            if 'analysis' in st.session_state:
+                del st.session_state['analysis']
             if 'deal_ready' in st.session_state:
                 del st.session_state['deal_ready']
 
@@ -214,8 +214,8 @@ with st.form("deal_input_form"):
 if submitted and st.session_state.get('deal_ready', False):
     if st.button("💾 Save Deal", use_container_width=True):
         try:
-            # Create deal record
-            deal = st.session_state['deal']
+            # Create deal record from analysis
+            analysis = st.session_state['analysis']
             deal_record = {
                 'site_name': site_name,
                 'city_key': selected_city,
@@ -236,19 +236,19 @@ if submitted and st.session_state.get('deal_ready', False):
                 'months_to_sell': months_to_sell,
                 'date_analyzed': datetime.now().strftime('%Y-%m-%d'),
                 # Analysis results
-                'gross_buildable_sqm': deal.outputs.gross_buildable_sqm,
-                'net_sellable_sqm': deal.outputs.net_sellable_sqm,
-                'gdv': deal.outputs.gdv,
-                'residual_land_value': deal.outputs.residual_land_value,
-                'land_pct_gdv': deal.outputs.land_pct_gdv,
-                'breakeven_sale_price': deal.outputs.breakeven_sale_price,
-                'overall_score': deal.viability.overall_score,
-                'overall_status': deal.viability.overall_status,
+                'gross_buildable_sqm': analysis.outputs.gross_buildable_sqm,
+                'net_sellable_sqm': analysis.outputs.net_sellable_sqm,
+                'gdv': analysis.outputs.gdv,
+                'residual_land_value': analysis.outputs.residual_land_value,
+                'land_pct_gdv': analysis.outputs.land_pct_gdv,
+                'breakeven_sale_price': analysis.outputs.breakeven_sale_price,
+                'overall_score': analysis.viability.overall_score,
+                'overall_status': analysis.viability.overall_status,
                 # New KPIs
-                'nsa_sqm': deal.outputs.net_sellable_sqm,
-                'acq_cost_per_land_sqm': deal.outputs.acq_cost_per_land_sqm,
-                'acq_cost_per_gfa_sqm': deal.outputs.acq_cost_per_gfa_sqm,
-                'land_cost_per_nsa_sqm': deal.outputs.land_cost_per_nsa_sqm
+                'nsa_sqm': analysis.outputs.net_sellable_sqm,
+                'acq_cost_per_land_sqm': analysis.outputs.acq_cost_per_land_sqm,
+                'acq_cost_per_gfa_sqm': analysis.outputs.acq_cost_per_gfa_sqm,
+                'land_cost_per_nsa_sqm': analysis.outputs.land_cost_per_nsa_sqm
             }
             
             # Load existing acquisitions or create new
