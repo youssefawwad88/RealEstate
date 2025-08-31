@@ -3,25 +3,21 @@ Test market data overlay functionality.
 
 NOTE: This test file is for overlay functionality (reference + processed file merging)
 which has been moved out of utils.market_loader as per architectural cleanup.
-These tests are commented out until the overlay functionality is implemented
+These tests are skipped until the overlay functionality is implemented
 in a separate module (e.g., utils/overlay_loader.py).
 """
 
-# import pytest
-# import pandas as pd
-# import tempfile
-# from pathlib import Path
-# from unittest.mock import patch
-
-# from utils.market_loader import load_market_data, get_available_cities
+import pytest
+import pandas as pd
+import tempfile
+from pathlib import Path
+from unittest.mock import patch
 
 
-# Overlay tests commented out until overlay functionality is implemented
-# in a separate module per architectural cleanup requirements
-
-# class TestMarketOverlay:
+class TestMarketOverlay:
     """Test market data reference/processed overlay pattern."""
     
+    @pytest.mark.skip(reason="TODO: overlay loader to be implemented in utils/overlay_loader.py")
     def test_reference_only(self):
         """Test loading when only reference file exists."""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -40,13 +36,14 @@ in a separate module (e.g., utils/overlay_loader.py).
             
             # Mock get_data_dir to return our temp directory
             with patch('utils.market_loader.get_data_dir', return_value=temp_path):
-                result_df = load_market_data()
+                # result_df = # load_market_data() # TODO: replace with overlay loader # TODO: replace with overlay loader
                 
                 assert len(result_df) == 2
                 assert 'toronto' in result_df['city_key'].values
                 assert 'vancouver' in result_df['city_key'].values
                 assert result_df[result_df['city_key'] == 'toronto']['sale_price_avg'].iloc[0] == 5200
     
+    @pytest.mark.skip(reason="TODO: overlay loader to be implemented in utils/overlay_loader.py")
     def test_processed_overlay(self):
         """Test overlay when both reference and processed files exist."""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -74,7 +71,7 @@ in a separate module (e.g., utils/overlay_loader.py).
             
             # Mock get_data_dir to return our temp directory
             with patch('utils.market_loader.get_data_dir', return_value=temp_path):
-                result_df = load_market_data()
+                # result_df = # load_market_data() # TODO: replace with overlay loader # TODO: replace with overlay loader
                 
                 # Check union of cities: reference (toronto, vancouver, calgary) + processed (dubai_downtown)
                 # toronto should be overridden by processed values
@@ -97,6 +94,7 @@ in a separate module (e.g., utils/overlay_loader.py).
                 assert dubai_row['land_comp_avg'] == 1200
                 assert dubai_row['sale_price_avg'] == 8500
     
+    @pytest.mark.skip(reason="TODO: overlay loader to be implemented in utils/overlay_loader.py")
     def test_processed_precedence_for_duplicates(self):
         """Test that processed data takes precedence for duplicate cities.""" 
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -126,7 +124,7 @@ in a separate module (e.g., utils/overlay_loader.py).
             
             # Mock get_data_dir to return our temp directory
             with patch('utils.market_loader.get_data_dir', return_value=temp_path):
-                result_df = load_market_data()
+                # result_df = # load_market_data() # TODO: replace with overlay loader # TODO: replace with overlay loader
                 
                 # Should have only one toronto row with processed values
                 assert len(result_df) == 1
@@ -136,6 +134,7 @@ in a separate module (e.g., utils/overlay_loader.py).
                 assert toronto_row['sale_price_avg'] == 5800  # Processed wins
                 assert toronto_row['demand_score'] == 5  # Processed wins
     
+    @pytest.mark.skip(reason="TODO: overlay loader to be implemented in utils/overlay_loader.py")
     def test_get_available_cities(self):
         """Test that get_available_cities returns correct city list."""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -152,11 +151,12 @@ in a separate module (e.g., utils/overlay_loader.py).
             
             # Mock get_data_dir to return our temp directory
             with patch('utils.market_loader.get_data_dir', return_value=temp_path):
-                cities = get_available_cities()
+                # cities = get_available_cities() # TODO: replace with overlay loader
                 
                 expected_cities = ['toronto', 'vancouver', 'calgary']
                 assert sorted(cities) == sorted(expected_cities)
     
+    @pytest.mark.skip(reason="TODO: overlay loader to be implemented in utils/overlay_loader.py")
     def test_missing_reference_file_error(self):
         """Test that missing reference file raises FileNotFoundError."""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -171,4 +171,5 @@ in a separate module (e.g., utils/overlay_loader.py).
             # Mock get_data_dir to return our temp directory
             with patch('utils.market_loader.get_data_dir', return_value=temp_path):
                 with pytest.raises(FileNotFoundError, match="Reference market data not found"):
-                    load_market_data()
+                    # load_market_data() # TODO: replace with overlay loader
+                    pass  # Skip test - overlay loader not implemented
