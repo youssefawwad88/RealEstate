@@ -13,8 +13,8 @@ from .io import (
 )
 
 from .market_loader import (
-    load_market_data,
-    get_available_cities,
+    load_market_benchmarks,
+    filter_allowed_markets,
 )
 
 from .filelock import (
@@ -93,8 +93,8 @@ __all__ = [
     "get_data_dir",
     
     # Market data utilities
-    "load_market_data",
-    "get_available_cities",
+    "load_market_benchmarks",
+    "filter_allowed_markets",
     
     # File locking utilities
     "FileLock",

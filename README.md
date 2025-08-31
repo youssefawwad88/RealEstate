@@ -231,6 +231,55 @@ CMD ["streamlit", "run", "dashboard/streamlit_app.py"]
 
 ---
 
+---
+
+## Troubleshooting
+
+### Import Error
+**Problem**: `ImportError` when running the application or "module not found" errors.
+
+**Solution**: Make sure you run `streamlit run` from the repo root directory, and that `utils/market_loader.py` exists. If you changed folders, ensure `__init__.py` files exist in the `utils/` and `core/` directories.
+
+```bash
+# Make sure you're in the project root
+cd /path/to/RealEstate
+streamlit run dashboard/streamlit_app.py
+```
+
+### Benchmarks Empty
+**Problem**: "Market research data not found" or benchmarks page shows no data.
+
+**Solution**: Create or verify `data/reference/market_research.csv` exists with the correct format. Keep `city_key` values exactly as: `dubai`, `greece`, `cyprus`.
+
+```csv
+city_key,land_comp_min,land_comp_avg,land_comp_max,sale_price_min,sale_price_avg,sale_price_max,construction_cost_min,construction_cost_avg,construction_cost_max,soft_cost_pct_typical,absorption_rate,land_gdv_benchmark,profit_margin_benchmark,demand_score,liquidity_score,volatility_score,last_updated
+dubai,300,500,900,4500,6000,8500,1800,2200,3000,0.16,18,22,18,5,5,3,2025-08-31
+greece,120,250,400,2200,3200,4200,1200,1500,2000,0.14,24,20,15,4,3,3,2025-08-31
+cyprus,150,280,450,2600,3600,4400,1300,1600,2100,0.15,22,20,15,3,3,2,2025-08-31
+```
+
+### KPIs Missing
+**Problem**: UI crashes when analyzing deals, or missing NSA/acquisition cost KPIs.
+
+**Solution**: The `CalculatedOutputs` must include `.nsa_sqm` and related fields. If the UI crashes, pull the latest version and ensure you're using the new `core/calculations.py` module.
+
+### New KPI Definitions (Real Estate Guidance)
+
+- **NSA (Net Sellable Area)** = GFA × Efficiency. GFA = Land Area × FAR. Efficiency typically 70–85% for residential (common areas, cores, etc.).
+- **Acquisition cost per total area** = (Land price + taxes/fees) ÷ Land area.
+- **Acquisition cost per buildable area** = (Land price + taxes/fees) ÷ GFA (this is the most compared metric across sites).
+- **Land cost per NSA** = (Land price + taxes/fees) ÷ NSA (tighter lens on saleable economics).
+- **Estimated absorption rate** = NSA ÷ months to sell (or use market benchmark months if you don't input it).
+
+These five KPIs are essential to compare sites apples-to-apples in Dubai, Greece, and Cyprus.
+
+### "Show Market Summary" Button Failed
+**Problem**: The button crashes or shows no data.
+
+**Solution**: This was caused by a missing `filter_allowed_markets` function. After implementing the tasks above and relaunching from the repo root, this button should work and show charts + a filtered table.
+
+---
+
 ## Data Structure
 
 ### Input Data Files

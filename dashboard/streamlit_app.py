@@ -3,8 +3,16 @@ TerraFlow Streamlit Dashboard
 Main entry point for the TerraFlow land acquisition dashboard.
 """
 
+import os
+import sys
 import streamlit as st
 from pathlib import Path
+
+# Safe sys.path injection
+ROOT = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = str(Path(ROOT).parent)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 # Page config
 st.set_page_config(
