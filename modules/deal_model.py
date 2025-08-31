@@ -19,7 +19,7 @@ class LandInputs(BaseModel):
 
     # Zoning and Development Constraints
     zoning: str = Field("Unknown", description="Zoning classification")
-    far: float = Field(..., gt=0, le=10, description="Floor Area Ratio")
+    far: Optional[float] = Field(None, gt=0, le=10, description="Floor Area Ratio")
     coverage: float = Field(..., gt=0, lt=1, description="Maximum site coverage ratio")
     max_floors: int = Field(1, ge=1, le=50, description="Maximum building floors")
     efficiency_ratio: float = Field(..., gt=0, lt=1, description="Net sellable / Gross area ratio")

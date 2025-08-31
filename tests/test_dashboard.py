@@ -43,7 +43,8 @@ class TestDashboardIntegration:
             'financing_cost': 45000.0,
             'holding_period_months': 30,
             'access_width_m': 6.0,
-            'utilities': 'Full'
+            'utilities': 'Full',
+            'months_to_sell': 18  # New field
         }
         
         # Test deal analysis
@@ -55,6 +56,12 @@ class TestDashboardIntegration:
         assert deal.outputs.gdv > 0
         assert deal.outputs.land_pct_gdv > 0
         assert deal.outputs.breakeven_sale_price > 0
+        
+        # Test new KPIs
+        assert deal.outputs.acq_cost_per_land_sqm is not None
+        assert deal.outputs.acq_cost_per_gfa_sqm is not None  
+        assert deal.outputs.land_cost_per_nsa_sqm is not None
+        assert deal.outputs.monthly_absorption_rate is not None
         
         # Test viability scoring
         assert deal.viability is not None
@@ -192,6 +199,75 @@ class TestDashboardIntegration:
                 
             except Exception as e:
                 pytest.fail(f"Market summary failed for {city}: {e}")
+    
+    def test_market_filtering(self):
+        """Test market filtering functionality."""
+        from utils.market_loader import filter_allowed_markets
+        
+        # Create test market data
+        test_data = pd.DataFrame([
+            {'city_key': 'toronto', 'land_comp_avg': 500},
+            {'city_key': 'dubai_downtown', 'land_comp_avg': 1200},
+            {'city_key': 'dubai_marina', 'land_comp_avg': 1000},
+            {'city_key': 'london', 'land_comp_avg': 800},
+            {'city_key': 'athens', 'land_comp_avg': 400},
+        ])
+        
+        # Apply filter
+        filtered_data = filter_allowed_markets(test_data)
+        
+        # Should only contain allowed cities
+        allowed_cities = {'dubai_downtown', 'dubai_marina', 'athens'}
+        actual_cities = set(filtered_data['city_key'].tolist())
+        
+        # Check that all returned cities are allowed
+        assert actual_cities.issubset(allowed_cities), f"Filtered cities {actual_cities} should be subset of {allowed_cities}"
+        
+        # Should have filtered out toronto and london
+        assert 'toronto' not in actual_cities
+        assert 'london' not in actual_cities
+    
+    def test_kpi_calculations_with_and_without_far(self):
+        """Test KPI calculations with and without FAR."""
+        
+        # Test with FAR
+        deal_inputs_with_far = {
+            'site_name': 'Test Site with FAR',
+            'land_area_sqm': 1000.0,
+            'asking_price': 500000.0,
+            'taxes_fees': 25000.0,
+            'zoning': 'Commercial',
+            'far': 2.0,
+            'coverage': 0.5,
+            'max_floors': 4,
+            'efficiency_ratio': 0.8,
+            'expected_sale_price_psm': 4000.0,
+            'construction_cost_psm': 2000.0,
+            'soft_cost_pct': 0.15,
+            'profit_target_pct': 0.18,
+            'financing_cost': 40000.0,
+            'holding_period_months': 24,
+            'months_to_sell': 12
+        }
+        
+        deal_with_far = create_deal_from_dict(deal_inputs_with_far)
+        
+        # Should use FAR for GFA calculation: 1000 * 2.0 = 2000
+        assert deal_with_far.outputs.gross_buildable_sqm == 2000.0
+        
+        # Test KPI calculations
+        assert deal_with_far.outputs.acq_cost_per_land_sqm == 500.0  # 500000 / 1000
+        assert deal_with_far.outputs.acq_cost_per_gfa_sqm == 250.0   # 500000 / 2000
+        assert deal_with_far.outputs.monthly_absorption_rate == pytest.approx(1.0/12, rel=1e-2)
+        
+        # Test without FAR (fallback to coverage * floors)
+        deal_inputs_without_far = deal_inputs_with_far.copy()
+        deal_inputs_without_far['far'] = None
+        
+        deal_without_far = create_deal_from_dict(deal_inputs_without_far)
+        
+        # Should use coverage * floors: 1000 * 0.5 * 4 = 2000
+        assert deal_without_far.outputs.gross_buildable_sqm == 2000.0
     
     def test_formatting_utilities(self):
         """Test formatting utilities used across dashboard."""
