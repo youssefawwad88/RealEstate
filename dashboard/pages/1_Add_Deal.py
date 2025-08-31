@@ -181,7 +181,6 @@ with st.form("deal_input_form"):
                             })
                     
                     if preview_data:
-                        import pandas as pd
                         st.dataframe(pd.DataFrame(preview_data), width="stretch", hide_index=True)
             
             # Color-coded badges for key metrics
