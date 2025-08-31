@@ -8,17 +8,16 @@ import pandas as pd
 from pathlib import Path
 import sys
 from datetime import datetime
+import os
 
-# Add project root to path
-project_root = Path(__file__).parent.parent.parent
-sys.path.append(str(project_root))
+# Add project root to path - safe sys.path injection
+ROOT = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = str(Path(ROOT).parent.parent)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 try:
-    from modules.deal_model import create_deal_from_dict
-    from modules.market_lookup import get_market_summary
-    from utils.scoring import get_color_indicator, format_currency
-    from utils.io import load_csv, save_csv, get_data_dir
-    from utils.market_loader import load_market_data, get_available_cities
+    from utils.market_loader import load_market_benchmarks, filter_allowed_markets
 except ImportError as e:
     st.error(f"Import error: {e}")
     st.info("Make sure you're running from the project root directory")
@@ -26,35 +25,29 @@ except ImportError as e:
 # Page config
 st.set_page_config(layout="wide")
 
-st.title("🏞️ Add Deal")
-st.markdown("Enter new land acquisition deals and analyze their viability.")
-
-# City selection from market research data
-try:
-    available_cities = get_available_cities()
-except Exception:
-    available_cities = ["toronto", "vancouver", "dubai_downtown", "default"]
+# Page header
+st.header("🏞️ Add Deal")
 
 # Market selection
 col1, col2 = st.columns([1, 2])
 with col1:
-    selected_city = st.selectbox("Market", available_cities, index=0)
+    market = st.selectbox("Market", ["dubai","greece","cyprus"], index=0)
 
 with col2:
     if st.button("Show Market Summary"):
         try:
-            # Load market data for selected city
-            market_df = load_market_data()
-            from utils.market_loader import filter_allowed_markets
-            market_df = filter_allowed_markets(market_df)
-            city_data = market_df[market_df['city_key'] == selected_city]
+            # Load market data for selected city using new loader
+            from utils.market_loader import load_market_benchmarks, filter_allowed_markets
+            bench = load_market_benchmarks()
+            bench = filter_allowed_markets(bench, allowed=(market,))
+            city_data = bench
             
             if not city_data.empty:
                 row = city_data.iloc[0]
                 
                 # Market summary card
                 with st.container():
-                    st.markdown(f"**📍 {selected_city.title()} Market Summary**")
+                    st.markdown(f"**📍 {market.title()} Market Summary**")
                     
                     # Key bullets
                     st.markdown(f"""
@@ -73,14 +66,14 @@ with col2:
                     fig = px.bar(
                         x=list(chart_data.keys()),
                         y=list(chart_data.values()),
-                        title=f"{selected_city.title()} - Price vs Cost",
+                        title=f"{market.title()} - Price vs Cost",
                         color_discrete_sequence=["#2ca02c", "#ff7f0e"],
                         height=300
                     )
                     fig.update_layout(showlegend=False, margin=dict(l=0, r=0, t=30, b=0))
                     st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info(f"No market data available for {selected_city}")
+                st.info(f"No market data available for {market}")
         except Exception as e:
             st.error(f"Error loading market summary: {e}")
 
@@ -115,10 +108,11 @@ with st.form("deal_input_form"):
         utilities = st.selectbox("Utilities Available", ["Full", "Partial", "None"])
         # Get default absorption from city data
         try:
-            market_df = load_market_data()
-            city_data = market_df[market_df['city_key'] == selected_city]
-            if not city_data.empty:
-                default_absorption = city_data.iloc[0]['absorption_rate']
+            from utils.market_loader import load_market_benchmarks, filter_allowed_markets
+            bench = load_market_benchmarks()
+            bench = filter_allowed_markets(bench, allowed=(market,))
+            if not bench.empty:
+                default_absorption = bench.iloc[0]['absorption_rate']
             else:
                 default_absorption = 18
         except Exception:
@@ -154,116 +148,61 @@ with st.form("deal_input_form"):
         }
         
         try:
-            # Analyze the deal using existing modules
-            deal = create_deal_from_dict(deal_inputs)
+            # Load market benchmarks for the selected city
+            from utils.market_loader import load_market_benchmarks, filter_allowed_markets
+            bench = load_market_benchmarks()
+            bench = filter_allowed_markets(bench, allowed=(market,))
+            market_row = bench.iloc[0].to_dict() if not bench.empty else None
+
+            # Analyze deal using new core calculations
+            from core.calculations import calculate_deal_metrics
+            out = calculate_deal_metrics(
+                land_area_sqm=land_area_sqm,
+                far=far,
+                efficiency_ratio=efficiency_ratio,
+                asking_price=asking_price,
+                taxes_and_fees=taxes_fees,
+                expected_sale_price_per_sqm=expected_sale_price_psm,
+                construction_cost_per_sqm=construction_cost_psm,
+                soft_cost_pct=soft_cost_pct,
+                profit_target_pct=profit_target_pct,
+                months_to_sell=months_to_sell,
+                market_row=market_row
+            )
             
             # Show analysis results
             st.success("✅ Analysis Complete!")
             
-            # Key metrics
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                st.metric("GDV", format_currency(deal.outputs.gdv))
-                st.metric("Residual Land Value", format_currency(deal.outputs.residual_land_value))
-                
-            with col2:
-                st.metric("Total Dev Cost", format_currency(deal.outputs.total_dev_cost))
-                st.metric("Land % of GDV", f"{deal.outputs.land_pct_gdv:.1f}%")
-                
-            with col3:
-                st.metric("Breakeven Price/sqm", format_currency(deal.outputs.breakeven_sale_price))
-                st.metric("Overall Score", f"{get_color_indicator(deal.viability.overall_score)} {deal.viability.overall_status}")
-            
-            # New KPI metrics in a 2x3 grid
-            st.subheader("📊 Additional KPIs")
-            
-            kp1, kp2, kp3 = st.columns(3)
-            kp1.metric("Net Sellable Area (NSA)", f"{deal.outputs.nsa_sqm:,.0f} m²")
-            kp2.metric("Acq. $/Land m²", f"${deal.outputs.acq_cost_per_land_sqm:,.0f}")
-            kp3.metric("Acq. $/Buildable m²", f"${deal.outputs.acq_cost_per_buildable_sqm:,.0f}")
+            # headline metrics (keep yours)
+            c1, c2, c3 = st.columns(3)
+            c1.metric("GDV", f"${out.gdv:,.0f}")
+            c2.metric("Total Dev Cost", f"${out.total_dev_cost:,.0f}")
+            c3.metric("Residual Land Value", f"${out.residual_land_value:,.0f}")
 
-            kp4, kp5 = st.columns(2)
-            kp4.metric("Land $/NSA m²", f"${deal.outputs.land_cost_per_nsa:,.0f}")
-            kp5.metric("Absorption (months)", f"{deal.outputs.absorption_months:,.0f}")
+            c4, c5, c6 = st.columns(3)
+            c4.metric("Land % of GDV", f"{out.land_pct_of_gdv*100:.1f}%")
+            c5.metric("Breakeven $/sqm", f"${out.breakeven_price_per_sqm:,.0f}")
+            c6.metric("Score", out.overall_score)
+
+            st.subheader("📊 Additional KPIs")
+            # NEW KPIs your team requested (with simple icons/emojis)
+            k1, k2, k3 = st.columns(3)
+            k1.metric("🏢 NSA (sqm)", f"{out.nsa_sqm:,.0f}")
+            k2.metric("📐 GFA (sqm)", f"{out.gfa_sqm:,.0f}")
+            k3.metric("💵 Acquisition Total", f"${out.acq_total_cost:,.0f}")
+
+            k4, k5, k6 = st.columns(3)
+            k4.metric("🏷️ Acq $/Land sqm", f"${out.acq_cost_per_total_area:,.0f}")
+            k5.metric("🏷️ Acq $/GFA sqm", f"${out.acq_cost_per_buildable_area:,.0f}")
+            k6.metric("🏷️ Land $/NSA sqm", f"${out.land_cost_per_nsa:,.0f}")
+
+            k7, k8 = st.columns(2)
+            k7.metric("⏳ Est. Months to Sell", f"{out.est_absorption_months:,.1f}")
+            k8.metric("🚀 Absorption / mo (sqm)", f"{out.est_absorption_rate_per_month:,.0f}")
             
-            # Color-coded badges for key metrics
-            st.subheader("🚦 Viability Flags")
-            
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                # Land % of GDV flag (target 15-30%)
-                land_pct = deal.outputs.land_pct_gdv
-                if 15 <= land_pct <= 30:
-                    st.success(f"🟢 Land % GDV: {land_pct:.1f}% (Good)")
-                elif land_pct < 15:
-                    st.warning(f"🟡 Land % GDV: {land_pct:.1f}% (Low)")
-                else:
-                    st.error(f"🔴 Land % GDV: {land_pct:.1f}% (High)")
-            
-            with col2:
-                # Breakeven vs market check (target >85% of market avg)
-                try:
-                    market_df = load_market_data()
-                    market_row = market_df[market_df['city_key'] == selected_city]
-                    if not market_row.empty:
-                        market_avg = market_row.iloc[0]['sale_price_avg']
-                        breakeven_ratio = deal.outputs.breakeven_sale_price / market_avg
-                        if breakeven_ratio <= 0.85:
-                            st.success(f"🟢 Breakeven Risk: {breakeven_ratio:.1%} of market (Good)")
-                        elif breakeven_ratio <= 0.95:
-                            st.warning(f"🟡 Breakeven Risk: {breakeven_ratio:.1%} of market (Medium)")
-                        else:
-                            st.error(f"🔴 Breakeven Risk: {breakeven_ratio:.1%} of market (High)")
-                    else:
-                        st.info("No market data for comparison")
-                except Exception:
-                    st.info("Market comparison unavailable")
-            
-            with col3:
-                # Asking vs residual comparison
-                asking_vs_residual = deal.outputs.asking_vs_residual
-                if asking_vs_residual <= 1.0:
-                    st.success(f"🟢 Price vs Value: {asking_vs_residual:.1%} (Good)")
-                elif asking_vs_residual <= 1.2:
-                    st.warning(f"🟡 Price vs Value: {asking_vs_residual:.1%} (Fair)")
-                else:
-                    st.error(f"🔴 Price vs Value: {asking_vs_residual:.1%} (Expensive)")
-            
-            # Detailed results
-            with st.expander("📊 Detailed Analysis"):
-                st.json({
-                    'Development Capacity': {
-                        'Gross Buildable (sqm)': deal.outputs.gross_buildable_sqm,
-                        'Net Sellable (sqm)': deal.outputs.net_sellable_sqm,
-                    },
-                    'Financial Metrics': {
-                        'GDV': deal.outputs.gdv,
-                        'Hard Costs': deal.outputs.hard_costs,
-                        'Soft Costs': deal.outputs.soft_costs,
-                        'Required Profit': deal.outputs.required_profit,
-                    },
-                    'Viability Scores': {
-                        'Residual vs Asking': deal.viability.residual_status,
-                        'Land % Score': deal.viability.land_pct_status,
-                        'Breakeven Risk': deal.viability.breakeven_status,
-                    },
-                    'Sensitivity Analysis': {
-                        'Base Case': deal.sensitivity.base_residual,
-                        'Sales -10%': deal.sensitivity.sales_down_10pct,
-                        'Costs +10%': deal.sensitivity.costs_up_10pct,
-                    }
-                })
-                
         except Exception as e:
             st.error(f"Analysis failed: {e}")
             st.info("Please check your inputs and try again.")
-            st.session_state['deal_ready'] = False
-            if 'deal' in st.session_state:
-                del st.session_state['deal']
-        else:
-            st.session_state['deal_ready'] = True
             st.session_state['deal'] = deal
 
 # Save deal button (outside form)
