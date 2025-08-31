@@ -33,6 +33,7 @@ class LandInputs(BaseModel):
     # Optional Risk Factors
     financing_cost: float = Field(0.0, ge=0, description="Interest during construction")
     holding_period_months: int = Field(24, ge=1, le=120, description="Development timeline")
+    months_to_sell: Optional[int] = Field(None, ge=1, le=120, description="Absorption period in months")
 
     model_config = ConfigDict(validate_assignment=True)
 
@@ -71,6 +72,12 @@ class CalculatedOutputs(BaseModel):
     land_psm: float = Field(..., description="Land price per square meter")
     land_per_buildable: float = Field(..., description="Land cost per buildable sqm")
     land_pct_gdv: float = Field(..., description="Land as percentage of GDV")
+    
+    # New KPIs
+    acq_cost_per_land_sqm: Optional[float] = Field(None, description="Acquisition cost per total land area")
+    acq_cost_per_gfa_sqm: Optional[float] = Field(None, description="Acquisition cost per buildable area")
+    land_cost_per_nsa_sqm: Optional[float] = Field(None, description="Land cost per net sellable area")
+    monthly_absorption_rate: Optional[float] = Field(None, description="Monthly absorption rate (fraction)")
 
     # Viability Indicators
     asking_vs_residual: float = Field(..., description="Asking price vs residual value")
@@ -123,10 +130,13 @@ class LandDeal(BaseModel):
             Self with computed outputs, viability scores, and sensitivity analysis
         """
         # Development Capacity Calculations
-        buildable_by_far = self.inputs.land_area_sqm * self.inputs.far
-        buildable_by_coverage = self.inputs.land_area_sqm * self.inputs.coverage * self.inputs.max_floors
-        gross_buildable_sqm = min(buildable_by_far, buildable_by_coverage)
-        net_sellable_sqm = gross_buildable_sqm * self.inputs.efficiency_ratio
+        # GFA calculation with FAR preference and fallback
+        gfa_far = self.inputs.land_area_sqm * self.inputs.far if self.inputs.far and self.inputs.far > 0 else None
+        gfa_fallback = self.inputs.land_area_sqm * self.inputs.coverage * self.inputs.max_floors if self.inputs.coverage and self.inputs.max_floors else None
+        gross_buildable_sqm = gfa_far or gfa_fallback  # prefer FAR; fallback if missing
+        
+        # NSA calculation
+        net_sellable_sqm = gross_buildable_sqm * self.inputs.efficiency_ratio if gross_buildable_sqm and self.inputs.efficiency_ratio else 0
 
         # Financial Calculations
         gdv = net_sellable_sqm * self.inputs.expected_sale_price_psm
@@ -141,6 +151,16 @@ class LandDeal(BaseModel):
         land_psm = self.inputs.asking_price / self.inputs.land_area_sqm
         land_per_buildable = self.inputs.asking_price / gross_buildable_sqm if gross_buildable_sqm > 0 else 0
         land_pct_gdv = (total_acquisition_cost / gdv * 100) if gdv > 0 else 0
+        
+        # New KPIs calculations
+        acq_cost_per_land_sqm = self.inputs.asking_price / self.inputs.land_area_sqm if self.inputs.land_area_sqm else None
+        acq_cost_per_gfa_sqm = self.inputs.asking_price / gross_buildable_sqm if gross_buildable_sqm else None
+        land_cost_per_nsa_sqm = self.inputs.asking_price / net_sellable_sqm if net_sellable_sqm else None
+        
+        # Absorption calculation
+        monthly_absorption_rate = None
+        if self.inputs.months_to_sell and self.inputs.months_to_sell > 0:
+            monthly_absorption_rate = 1.0 / self.inputs.months_to_sell
 
         # Viability Indicators
         asking_vs_residual = self.inputs.asking_price - residual_land_value
@@ -162,6 +182,10 @@ class LandDeal(BaseModel):
             land_pct_gdv=land_pct_gdv,
             asking_vs_residual=asking_vs_residual,
             breakeven_sale_price=breakeven_sale_price,
+            acq_cost_per_land_sqm=acq_cost_per_land_sqm,
+            acq_cost_per_gfa_sqm=acq_cost_per_gfa_sqm,
+            land_cost_per_nsa_sqm=land_cost_per_nsa_sqm,
+            monthly_absorption_rate=monthly_absorption_rate,
         )
 
         # Calculate viability scores

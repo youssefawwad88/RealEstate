@@ -65,10 +65,43 @@ def load_market_data() -> pd.DataFrame:
         return reference_df
 
 
+def filter_allowed_markets(market_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filter market data to only include allowed cities (Dubai, Cyprus, Greece).
+    
+    Args:
+        market_df: DataFrame with market data
+        
+    Returns:
+        Filtered DataFrame with only allowed cities
+    """
+    ALLOWED_CITIES = {
+        # UAE
+        "dubai", "dubai_downtown", "dubai_marina",
+        # Cyprus (list both city & island-wide if present)
+        "limassol", "nicosia", "larnaca", "paphos", "cyprus",
+        # Greece
+        "athens", "thessaloniki", "heraklion", "greece"
+    }
+    
+    if 'city_key' not in market_df.columns:
+        return market_df  # Return as-is if no city_key column
+    
+    # Filter to allowed cities (case-insensitive matching)
+    filtered_df = market_df[
+        market_df["city_key"].str.lower().isin(ALLOWED_CITIES)
+    ].copy()
+    
+    return filtered_df
+
+
 def get_available_cities() -> list[str]:
     """Get list of available cities from market data."""
     try:
         market_df = load_market_data()
+        # Apply market restriction filter
+        market_df = filter_allowed_markets(market_df)
+        
         if 'city_key' in market_df.columns:
             return market_df['city_key'].tolist()
         else:

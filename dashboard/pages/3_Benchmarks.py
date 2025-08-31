@@ -26,7 +26,10 @@ st.markdown("Explore market research data and benchmarks by city.")
 
 # Load market research data
 try:
+    from utils.market_loader import filter_allowed_markets
     market_df = load_market_data()
+    # Apply market restriction filter
+    market_df = filter_allowed_markets(market_df)
     st.success(f"Loaded market data for {len(market_df)} cities.")
 
     # City selection
@@ -126,7 +129,9 @@ try:
                     labels={"x": "Metric", "y": "Price ($/sqm)"},
                     color_discrete_sequence=["#1f77b4"],
                 )
-                st.plotly_chart(fig_land, use_container_width=True)
+                left, mid, right = st.columns([1, 2, 1])
+                with mid:
+                    st.plotly_chart(fig_land, use_container_width=True)
 
                 # Sale pricing
                 st.markdown("**Sale Price Comparables ($/sqm)**")
@@ -143,7 +148,9 @@ try:
                     labels={"x": "Metric", "y": "Price ($/sqm)"},
                     color_discrete_sequence=["#2ca02c"],
                 )
-                st.plotly_chart(fig_sale, use_container_width=True)
+                left, mid, right = st.columns([1, 2, 1])
+                with mid:
+                    st.plotly_chart(fig_sale, use_container_width=True)
 
             with col2:
                 st.subheader("🏗️ Cost Benchmarks")
@@ -163,7 +170,9 @@ try:
                     labels={"x": "Metric", "y": "Cost ($/sqm)"},
                     color_discrete_sequence=["#ff7f0e"],
                 )
-                st.plotly_chart(fig_cost, use_container_width=True)
+                left, mid, right = st.columns([1, 2, 1])
+                with mid:
+                    st.plotly_chart(fig_cost, use_container_width=True)
 
                 # Market metrics
                 st.markdown("**Market Performance Metrics**")
@@ -219,7 +228,9 @@ try:
                         color="demand_score",
                         color_continuous_scale="Viridis",
                     )
-                    st.plotly_chart(fig_compare, use_container_width=True)
+                    left, mid, right = st.columns([1, 2, 1])
+                    with mid:
+                        st.plotly_chart(fig_compare, use_container_width=True)
 
                     # Comparison table
                     display_cols = [

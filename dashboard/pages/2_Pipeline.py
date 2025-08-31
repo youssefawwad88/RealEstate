@@ -41,7 +41,16 @@ try:
             with col1:
                 # City filter
                 if 'city_key' in df.columns:
-                    available_cities = ['All'] + sorted(df['city_key'].unique().tolist())
+                    # Get available cities from market data (already filtered)
+                    try:
+                        from utils.market_loader import get_available_cities
+                        market_cities = get_available_cities()
+                        # Filter pipeline data to only include allowed cities
+                        pipeline_cities = df['city_key'].unique().tolist()
+                        available_cities = ['All'] + sorted([city for city in pipeline_cities if city.lower() in [c.lower() for c in market_cities]])
+                    except Exception:
+                        available_cities = ['All'] + sorted(df['city_key'].unique().tolist())
+                    
                     selected_city = st.selectbox("City", available_cities)
                     
                     if selected_city != 'All':
@@ -197,7 +206,9 @@ try:
                             color=score_counts.index,
                             color_discrete_map=colors
                         )
-                        st.plotly_chart(fig, use_container_width=True)
+                        left, mid, right = st.columns([1, 2, 1])
+                        with mid:
+                            st.plotly_chart(fig, use_container_width=True)
                     
                     with col2:
                         # Bar chart
@@ -209,7 +220,9 @@ try:
                             color_discrete_map=colors,
                             labels={'x': 'Viability Score', 'y': 'Count'}
                         )
-                        st.plotly_chart(fig_bar, use_container_width=True)
+                        left, mid, right = st.columns([1, 2, 1])
+                        with mid:
+                            st.plotly_chart(fig_bar, use_container_width=True)
                 
                 # Land % GDV vs Residual scatter plot
                 if 'land_pct_gdv' in df.columns and 'residual_land_value' in df.columns:
@@ -234,7 +247,9 @@ try:
                     fig_scatter.add_vline(x=15, line_dash="dash", annotation_text="Min Land % (15%)", line_color="gray")
                     fig_scatter.add_vline(x=30, line_dash="dash", annotation_text="Max Land % (30%)", line_color="gray")
                     
-                    st.plotly_chart(fig_scatter, use_container_width=True)
+                    left, mid, right = st.columns([1, 2, 1])
+                    with mid:
+                        st.plotly_chart(fig_scatter, use_container_width=True)
                 
                 # Download CSV button
                 st.subheader("📥 Export Data")

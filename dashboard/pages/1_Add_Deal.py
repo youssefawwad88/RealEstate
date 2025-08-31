@@ -74,6 +74,7 @@ with st.form("deal_input_form"):
         # Additional fields for completeness
         access_width_m = st.number_input("Access Width (m)", min_value=1.0, value=6.0)
         utilities = st.selectbox("Utilities Available", ["Full", "Partial", "None"])
+        months_to_sell = st.number_input("Months to Sell (Absorption)", min_value=1, max_value=120, value=18)
         
     submitted = st.form_submit_button("🔍 Analyze Deal", use_container_width=True)
     
@@ -96,7 +97,8 @@ with st.form("deal_input_form"):
             'financing_cost': 45000.0,  # Default value
             'holding_period_months': 30,  # Default value
             'access_width_m': float(access_width_m),
-            'utilities': utilities
+            'utilities': utilities,
+            'months_to_sell': int(months_to_sell) if months_to_sell else None
         }
         
         try:
@@ -120,6 +122,67 @@ with st.form("deal_input_form"):
             with col3:
                 st.metric("Breakeven Price/sqm", format_currency(deal.outputs.breakeven_sale_price))
                 st.metric("Overall Score", f"{get_color_indicator(deal.viability.overall_score)} {deal.viability.overall_status}")
+            
+            # New KPI metrics in a 2x3 grid
+            st.subheader("📊 Additional KPIs")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Areas
+                st.metric(
+                    "Net Sellable Area (NSA)", 
+                    f"{deal.outputs.net_sellable_sqm:,.0f} m²",
+                    help="Net sellable area = GFA × efficiency ratio"
+                )
+                
+                # Cost metrics
+                if deal.outputs.acq_cost_per_land_sqm:
+                    st.metric(
+                        "Acquisition cost / total area", 
+                        f"{deal.outputs.acq_cost_per_land_sqm:,.0f} $/m²",
+                        help="Land asking price ÷ total land area"
+                    )
+                
+                if deal.outputs.acq_cost_per_gfa_sqm:
+                    st.metric(
+                        "Acquisition cost / buildable area", 
+                        f"{deal.outputs.acq_cost_per_gfa_sqm:,.0f} $/m²",
+                        help="Land asking price ÷ gross buildable area"
+                    )
+            
+            with col2:
+                if deal.outputs.land_cost_per_nsa_sqm:
+                    st.metric(
+                        "Land cost / NSA", 
+                        f"{deal.outputs.land_cost_per_nsa_sqm:,.0f} $/m²",
+                        help="Land asking price ÷ net sellable area"
+                    )
+                
+                # Absorption
+                if deal.outputs.monthly_absorption_rate and months_to_sell:
+                    st.metric(
+                        "Months to Sell (Absorption)", 
+                        f"{months_to_sell:.0f} months",
+                        help=f"Monthly absorption rate: {deal.outputs.monthly_absorption_rate:.1%}"
+                    )
+                    
+                    # Simple absorption schedule preview
+                    st.markdown("**Absorption Schedule Preview:**")
+                    preview_data = []
+                    for month in [1, 3, 6, 12, months_to_sell]:
+                        if month <= months_to_sell:
+                            pct_sold = min((month * deal.outputs.monthly_absorption_rate * 100), 100)
+                            remaining_nsa = deal.outputs.net_sellable_sqm * (1 - pct_sold/100)
+                            preview_data.append({
+                                "Month": month,
+                                "% Sold": f"{pct_sold:.1f}%",
+                                "Remaining NSA (m²)": f"{remaining_nsa:,.0f}"
+                            })
+                    
+                    if preview_data:
+                        import pandas as pd
+                        st.dataframe(pd.DataFrame(preview_data), width="stretch", hide_index=True)
             
             # Color-coded badges for key metrics
             st.subheader("🚦 Viability Flags")
@@ -223,6 +286,7 @@ if submitted and st.session_state.get('deal_ready', False):
                 'profit_target_pct': profit_target_pct,
                 'access_width_m': access_width_m,
                 'utilities': utilities,
+                'months_to_sell': months_to_sell,
                 'date_analyzed': datetime.now().strftime('%Y-%m-%d'),
                 # Analysis results
                 'gross_buildable_sqm': deal.outputs.gross_buildable_sqm,
@@ -232,7 +296,12 @@ if submitted and st.session_state.get('deal_ready', False):
                 'land_pct_gdv': deal.outputs.land_pct_gdv,
                 'breakeven_sale_price': deal.outputs.breakeven_sale_price,
                 'overall_score': deal.viability.overall_score,
-                'overall_status': deal.viability.overall_status
+                'overall_status': deal.viability.overall_status,
+                # New KPIs
+                'nsa_sqm': deal.outputs.net_sellable_sqm,
+                'acq_cost_per_land_sqm': deal.outputs.acq_cost_per_land_sqm,
+                'acq_cost_per_gfa_sqm': deal.outputs.acq_cost_per_gfa_sqm,
+                'land_cost_per_nsa_sqm': deal.outputs.land_cost_per_nsa_sqm
             }
             
             # Load existing acquisitions or create new
