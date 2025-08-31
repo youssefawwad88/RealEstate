@@ -186,22 +186,6 @@ with st.form("deal_input_form"):
             kp4, kp5 = st.columns(2)
             kp4.metric("Land $/NSA m²", f"${deal.outputs.land_cost_per_nsa:,.0f}")
             kp5.metric("Absorption (months)", f"{deal.outputs.absorption_months:,.0f}")
-                    
-                    # Simple absorption schedule preview
-                    st.markdown("**Absorption Schedule Preview:**")
-                    preview_data = []
-                    for month in [1, 3, 6, 12, months_to_sell]:
-                        if month <= months_to_sell:
-                            pct_sold = min((month * deal.outputs.monthly_absorption_rate * 100), 100)
-                            remaining_nsa = deal.outputs.net_sellable_sqm * (1 - pct_sold/100)
-                            preview_data.append({
-                                "Month": month,
-                                "% Sold": f"{pct_sold:.1f}%",
-                                "Remaining NSA (m²)": f"{remaining_nsa:,.0f}"
-                            })
-                    
-                    if preview_data:
-                        st.dataframe(pd.DataFrame(preview_data), width="stretch", hide_index=True)
             
             # Color-coded badges for key metrics
             st.subheader("🚦 Viability Flags")
