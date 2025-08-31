@@ -321,7 +321,9 @@ class TestSmokeTests:
                 importlib.reload(streamlit_app)
                 
                 # Now check that it properly detected the missing page
-                assert "0_Home.py" in streamlit_app.missing, f"Should track 0_Home.py as missing, missing={streamlit_app.missing}"
+                # Note: missing list now contains detailed error messages like "0_Home.py (not on disk)"
+                missing_contains_home = any("0_Home.py" in entry for entry in streamlit_app.missing)
+                assert missing_contains_home, f"Should track 0_Home.py as missing, missing={streamlit_app.missing}"
                 assert "0_Home.py" not in streamlit_app.found, f"Should not track 0_Home.py as found, found={streamlit_app.found}"
                 assert len(streamlit_app.pages) == 4, f"Should have 4 pages when Home is missing, got {len(streamlit_app.pages)}"
                 
