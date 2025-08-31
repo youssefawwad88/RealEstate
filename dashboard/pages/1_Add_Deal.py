@@ -203,7 +203,7 @@ with st.form("deal_input_form"):
         except Exception as e:
             st.error(f"Analysis failed: {e}")
             st.info("Please check your inputs and try again.")
-            st.session_state['deal'] = deal
+            st.session_state['deal'] = out
 
 # Save deal button (outside form)
 if submitted and st.session_state.get('deal_ready', False):
