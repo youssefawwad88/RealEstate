@@ -124,7 +124,7 @@ class TestMarketOverlay:
             
             # Mock get_data_dir to return our temp directory
             with patch('utils.market_loader.get_data_dir', return_value=temp_path):
-                # result_df = # load_market_data() # TODO: replace with overlay loader # TODO: replace with overlay loader
+                # result_df = # load_market_data() # TODO: replace with overlay loader
                 
                 # Should have only one toronto row with processed values
                 assert len(result_df) == 1
