@@ -23,6 +23,9 @@ except ImportError as e:
     st.error(f"Import error: {e}")
     st.info("Make sure you're running from the project root directory")
 
+# Page config
+st.set_page_config(layout="wide")
+
 st.title("🏞️ Add Deal")
 st.markdown("Enter new land acquisition deals and analyze their viability.")
 
@@ -40,8 +43,44 @@ with col1:
 with col2:
     if st.button("Show Market Summary"):
         try:
-            market_summary = get_market_summary(selected_city)
-            st.json(market_summary)
+            # Load market data for selected city
+            market_df = load_market_data()
+            from utils.market_loader import filter_allowed_markets
+            market_df = filter_allowed_markets(market_df)
+            city_data = market_df[market_df['city_key'] == selected_city]
+            
+            if not city_data.empty:
+                row = city_data.iloc[0]
+                
+                # Market summary card
+                with st.container():
+                    st.markdown(f"**📍 {selected_city.title()} Market Summary**")
+                    
+                    # Key bullets
+                    st.markdown(f"""
+                    • **Sale Price**: ${row['sale_price_avg']:,.0f}/m² (${row['sale_price_min']:,.0f} - ${row['sale_price_max']:,.0f})
+                    • **Construction**: ${row['construction_cost_avg']:,.0f}/m² typical
+                    • **Absorption**: {row['absorption_rate']:.0f} months typical
+                    """)
+                    
+                    # Mini comparison chart
+                    import plotly.express as px
+                    chart_data = {
+                        'Sale Price': row['sale_price_avg'],
+                        'Construction Cost': row['construction_cost_avg']
+                    }
+                    
+                    fig = px.bar(
+                        x=list(chart_data.keys()),
+                        y=list(chart_data.values()),
+                        title=f"{selected_city.title()} - Price vs Cost",
+                        color_discrete_sequence=["#2ca02c", "#ff7f0e"],
+                        height=300
+                    )
+                    fig.update_layout(showlegend=False, margin=dict(l=0, r=0, t=30, b=0))
+                    st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info(f"No market data available for {selected_city}")
         except Exception as e:
             st.error(f"Error loading market summary: {e}")
 
@@ -74,7 +113,20 @@ with st.form("deal_input_form"):
         # Additional fields for completeness
         access_width_m = st.number_input("Access Width (m)", min_value=1.0, value=6.0)
         utilities = st.selectbox("Utilities Available", ["Full", "Partial", "None"])
-        months_to_sell = st.number_input("Months to Sell (Absorption)", min_value=1, max_value=120, value=18)
+        # Get default absorption from city data
+        try:
+            market_df = load_market_data()
+            city_data = market_df[market_df['city_key'] == selected_city]
+            if not city_data.empty:
+                default_absorption = city_data.iloc[0]['absorption_rate']
+            else:
+                default_absorption = 18
+        except Exception:
+            default_absorption = 18
+            
+        months_to_sell = st.number_input("Months to Sell (Absorption)", 
+                                       min_value=1, max_value=120, 
+                                       value=int(default_absorption))
         
     submitted = st.form_submit_button("🔍 Analyze Deal", use_container_width=True)
     
@@ -126,46 +178,14 @@ with st.form("deal_input_form"):
             # New KPI metrics in a 2x3 grid
             st.subheader("📊 Additional KPIs")
             
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                # Areas
-                st.metric(
-                    "Net Sellable Area (NSA)", 
-                    f"{deal.outputs.net_sellable_sqm:,.0f} m²",
-                    help="Net sellable area = GFA × efficiency ratio"
-                )
-                
-                # Cost metrics
-                if deal.outputs.acq_cost_per_land_sqm:
-                    st.metric(
-                        "Acquisition cost / total area", 
-                        f"{deal.outputs.acq_cost_per_land_sqm:,.0f} $/m²",
-                        help="Land asking price ÷ total land area"
-                    )
-                
-                if deal.outputs.acq_cost_per_gfa_sqm:
-                    st.metric(
-                        "Acquisition cost / buildable area", 
-                        f"{deal.outputs.acq_cost_per_gfa_sqm:,.0f} $/m²",
-                        help="Land asking price ÷ gross buildable area"
-                    )
-            
-            with col2:
-                if deal.outputs.land_cost_per_nsa_sqm:
-                    st.metric(
-                        "Land cost / NSA", 
-                        f"{deal.outputs.land_cost_per_nsa_sqm:,.0f} $/m²",
-                        help="Land asking price ÷ net sellable area"
-                    )
-                
-                # Absorption
-                if deal.outputs.monthly_absorption_rate and months_to_sell:
-                    st.metric(
-                        "Months to Sell (Absorption)", 
-                        f"{months_to_sell:.0f} months",
-                        help=f"Monthly absorption rate: {deal.outputs.monthly_absorption_rate:.1%}"
-                    )
+            kp1, kp2, kp3 = st.columns(3)
+            kp1.metric("Net Sellable Area (NSA)", f"{deal.outputs.nsa_sqm:,.0f} m²")
+            kp2.metric("Acq. $/Land m²", f"${deal.outputs.acq_cost_per_land_sqm:,.0f}")
+            kp3.metric("Acq. $/Buildable m²", f"${deal.outputs.acq_cost_per_buildable_sqm:,.0f}")
+
+            kp4, kp5 = st.columns(2)
+            kp4.metric("Land $/NSA m²", f"${deal.outputs.land_cost_per_nsa:,.0f}")
+            kp5.metric("Absorption (months)", f"{deal.outputs.absorption_months:,.0f}")
                     
                     # Simple absorption schedule preview
                     st.markdown("**Absorption Schedule Preview:**")

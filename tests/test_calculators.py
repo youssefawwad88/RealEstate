@@ -405,3 +405,59 @@ class TestDealStandardization:
         assert abs(standardized["land_area_sqm"] - 1000) < 1
         # $372/sqft ≈ $4000/sqm  
         assert abs(standardized["expected_sale_price_psm"] - 4000) < 50
+
+
+class TestNewDealOutputs:
+    """Test new deal outputs functionality."""
+    
+    def test_new_kpi_outputs(self):
+        """Test the five new KPI outputs with an example deal."""
+        from modules.deal_model import create_deal_from_dict
+        
+        # Example deal matching requirements
+        deal_inputs = {
+            'site_name': 'Test KPI Site',
+            'land_area_sqm': 1000.0,
+            'asking_price': 500000.0,
+            'taxes_fees': 25000.0,
+            'zoning': 'Residential',
+            'far': 1.8,
+            'coverage': 0.6,
+            'max_floors': 3,
+            'efficiency_ratio': 0.85,
+            'expected_sale_price_psm': 4500.0,
+            'construction_cost_psm': 2200.0,
+            'soft_cost_pct': 0.16,
+            'profit_target_pct': 0.18,
+            'financing_cost': 40000.0,
+            'holding_period_months': 24,
+            'months_to_sell': 15
+        }
+        
+        deal = create_deal_from_dict(deal_inputs)
+        
+        # Test NSA calculation
+        expected_nsa = deal.outputs.gross_buildable_sqm * 0.85  # efficiency_ratio
+        assert deal.outputs.nsa_sqm == expected_nsa
+        
+        # Test acquisition cost per land sqm
+        expected_acq_per_land = 500000 / 1000  # asking_price / land_area_sqm
+        assert deal.outputs.acq_cost_per_land_sqm == expected_acq_per_land
+        
+        # Test acquisition cost per buildable sqm 
+        expected_acq_per_buildable = 500000 / deal.outputs.gross_buildable_sqm
+        assert deal.outputs.acq_cost_per_buildable_sqm == expected_acq_per_buildable
+        
+        # Test land cost per NSA
+        expected_land_per_nsa = 500000 / deal.outputs.nsa_sqm
+        assert deal.outputs.land_cost_per_nsa == expected_land_per_nsa
+        
+        # Test absorption months
+        assert deal.outputs.absorption_months == 15.0
+        
+        # Verify all outputs are positive and reasonable
+        assert deal.outputs.nsa_sqm > 0
+        assert deal.outputs.acq_cost_per_land_sqm > 0
+        assert deal.outputs.acq_cost_per_buildable_sqm > 0
+        assert deal.outputs.land_cost_per_nsa > 0
+        assert deal.outputs.absorption_months > 0
