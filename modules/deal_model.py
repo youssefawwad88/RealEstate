@@ -131,9 +131,12 @@ class LandDeal(BaseModel):
         """
         # Development Capacity Calculations
         # GFA calculation with FAR preference and fallback
-        gfa_far = self.inputs.land_area_sqm * self.inputs.far if self.inputs.far and self.inputs.far > 0 else None
-        gfa_fallback = self.inputs.land_area_sqm * self.inputs.coverage * self.inputs.max_floors if self.inputs.coverage and self.inputs.max_floors else None
-        gross_buildable_sqm = gfa_far or gfa_fallback  # prefer FAR; fallback if missing
+        if gfa_far is not None:
+            gross_buildable_sqm = gfa_far
+        elif gfa_fallback is not None:
+            gross_buildable_sqm = gfa_fallback
+        else:
+            gross_buildable_sqm = 0.0  # Default to 0 if both are None
         
         # NSA calculation
         net_sellable_sqm = gross_buildable_sqm * self.inputs.efficiency_ratio if gross_buildable_sqm and self.inputs.efficiency_ratio else 0
