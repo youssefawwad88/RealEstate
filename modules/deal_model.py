@@ -129,17 +129,21 @@ class LandDeal(BaseModel):
         Returns:
             Self with computed outputs, viability scores, and sensitivity analysis
         """
+        from modules.calculators.residual import calculate_development_capacity
+        
         # Development Capacity Calculations
-        # GFA calculation with FAR preference and fallback
-        if gfa_far is not None:
-            gross_buildable_sqm = gfa_far
-        elif gfa_fallback is not None:
-            gross_buildable_sqm = gfa_fallback
-        else:
-            gross_buildable_sqm = 0.0  # Default to 0 if both are None
+        capacity = calculate_development_capacity(
+            land_area_sqm=self.inputs.land_area_sqm,
+            far=self.inputs.far,
+            coverage=self.inputs.coverage,
+            max_floors=self.inputs.max_floors,
+            efficiency_ratio=self.inputs.efficiency_ratio
+        )
+        
+        gross_buildable_sqm = capacity.gross_buildable_sqm
         
         # NSA calculation
-        net_sellable_sqm = gross_buildable_sqm * self.inputs.efficiency_ratio if gross_buildable_sqm and self.inputs.efficiency_ratio else 0
+        net_sellable_sqm = capacity.net_sellable_sqm
 
         # Financial Calculations
         gdv = net_sellable_sqm * self.inputs.expected_sale_price_psm
