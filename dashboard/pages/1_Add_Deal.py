@@ -193,12 +193,19 @@ with st.form("deal_input_form"):
         except Exception as e:
             st.error(f"Analysis failed: {e}")
             st.info("Please check your inputs and try again.")
+            st.session_state['deal_ready'] = False
+            if 'deal' in st.session_state:
+                del st.session_state['deal']
+        else:
+            st.session_state['deal_ready'] = True
+            st.session_state['deal'] = deal
 
 # Save deal button (outside form)
-if submitted and 'deal' in locals():
+if submitted and st.session_state.get('deal_ready', False):
     if st.button("💾 Save Deal", use_container_width=True):
         try:
             # Create deal record
+            deal = st.session_state['deal']
             deal_record = {
                 'site_name': site_name,
                 'city_key': selected_city,
