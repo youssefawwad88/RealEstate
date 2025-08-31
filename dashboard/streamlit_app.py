@@ -1,70 +1,55 @@
 """
-TerraFlow Streamlit Dashboard
-Main entry point for the TerraFlow land acquisition dashboard.
+TerraFlow v2 - Streamlit Application Entry Point
+Minimal, clean, modular architecture.
 """
-
-import os
 import sys
 import streamlit as st
 from pathlib import Path
 
-# Safe sys.path injection
-ROOT = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = str(Path(ROOT).parent)
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
+# Add repo root to sys.path once (deterministic imports)
+repo_root = Path(__file__).parent.parent
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
 
-# Page config
+# Page configuration
 st.set_page_config(
-    page_title="TerraFlow – Land Acquisition",
+    page_title="TerraFlow v2",
     page_icon="🏗️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- Navigation (robust + relative-to-app) ---
-APP_DIR = Path(__file__).parent              # /.../dashboard
-PAGES_DIR = APP_DIR / "pages"                # /.../dashboard/pages
+# Sidebar navigation
+st.sidebar.title("TerraFlow v2")
+st.sidebar.markdown("---")
 
-# For diagnostics in cloud logs - only show in debug mode
-DEBUG = False  # must be False in prod
-if DEBUG:
-    st.write(f"[Nav] APP_DIR={APP_DIR} | PAGES_DIR exists={PAGES_DIR.exists()} | Files={sorted([p.name for p in PAGES_DIR.glob('*.py')])}")
+pages = {
+    "🏗️ Add Deal": "pages/1_Add_Deal.py", 
+    "📊 Benchmarks": "pages/2_Benchmarks.py"
+}
 
-def add_page(filename: str, title: str, icon: str):
-    """
-    Register a page using a RELATIVE path (from the app file) to avoid
-    Streamlit Cloud path resolution quirks.
-    """
-    rel_path = Path("pages") / filename          # e.g. "pages/0_Home.py"
-    abs_path = PAGES_DIR / filename              # e.g. "/.../dashboard/pages/0_Home.py"
-    if abs_path.exists():
-        try:
-            # IMPORTANT: give Streamlit the RELATIVE string
-            pages.append(st.Page(str(rel_path), title=title, icon=icon))
-            found.append(filename)
-        except Exception as e:
-            missing.append(f"{filename} (registration failed: {e})")
-    else:
-        missing.append(f"{filename} (not on disk)")
+# Simple navigation info
+st.sidebar.markdown("### Navigation")
+st.sidebar.markdown("Use the pages above to:")
+st.sidebar.markdown("- **Add Deal**: Input deal parameters and analyze")
+st.sidebar.markdown("- **Benchmarks**: View market research data")
 
-pages, found, missing = [], [], []
+# Main content
+st.title("🏗️ TerraFlow v2")
+st.markdown("### Real Estate Development Analysis")
 
-# Register pages (these filenames must match case-sensitively)
-add_page("0_Home.py", "Dashboard", "🏠")
-add_page("1_Add_Deal.py", "Add Deal", "📝")
-add_page("2_Pipeline.py", "Pipeline", "📊")
-add_page("3_Benchmarks.py", "Benchmarks", "📈")
-add_page("4_Configs_Viewer.py", "Configs", "🗂️")
+st.markdown("""
+Welcome to TerraFlow v2 - a clean, minimal real estate development analysis tool.
 
-# Final navigation
-nav = st.navigation(pages)
-nav.run()
+**Available Markets:** Dubai, Greece, Cyprus
 
-# Developer diagnostics (only visible to you)
-if missing:
-    with st.expander("⚠️ Navigation diagnostics"):
-        st.write("Missing or failed:", missing)
-        st.write("Found:", found)
+**Navigation:** Use the pages in the sidebar to get started.
+""")
 
-# Main content will be provided by the selected page
+# System info
+with st.expander("ℹ️ System Information"):
+    st.code(f"""
+Repository Root: {repo_root}
+Python Path: {sys.path[0] if sys.path else 'Not set'}
+Session State Keys: {list(st.session_state.keys())}
+    """)
