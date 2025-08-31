@@ -59,3 +59,11 @@ def filter_allowed_markets(
     allowed = tuple(a.lower() for a in (allowed or ALLOWED_MARKETS_DEFAULT))
     out = df[df["city_key"].astype(str).str.lower().isin(allowed)].copy()
     return out
+
+
+def get_available_cities() -> List[str]:
+    """Get list of available cities from market data."""
+    df = load_market_benchmarks()
+    if df.empty or "city_key" not in df.columns:
+        return list(ALLOWED_MARKETS_DEFAULT)
+    return df["city_key"].tolist()
