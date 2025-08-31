@@ -416,10 +416,10 @@ class TestSmokeTests:
         sys.path.append(str(Path(__file__).parent.parent))
         
         try:
-            from utils.market_loader import load_market_data
+            from utils.market_loader import load_market_benchmarks
             
             # Load market data
-            market_df = load_market_data()
+            market_df = load_market_benchmarks()
             
             # Should have data
             assert market_df is not None, "Market data should not be None"
@@ -488,11 +488,11 @@ class TestSmokeTests:
 
     def test_add_deal_new_metrics_smoke_test(self):
         """Smoke test that loads market CSV, navigates to Add Deal, and tests new metrics."""
-        from utils.market_loader import load_market_data, filter_allowed_markets
+        from utils.market_loader import load_market_benchmarks, filter_allowed_markets
         from modules.deal_model import create_deal_from_dict
         
         # Load market CSV
-        market_df = load_market_data()
+        market_df = load_market_benchmarks()
         filtered_df = filter_allowed_markets(market_df)
         assert not filtered_df.empty, "Should have filtered market data"
         
