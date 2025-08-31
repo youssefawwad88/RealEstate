@@ -148,10 +148,8 @@ with st.form("deal_input_form"):
                             st.success(f"🟢 Breakeven Risk: {breakeven_ratio:.1%} of market (Good)")
                         elif breakeven_ratio <= 0.95:
                             st.warning(f"🟡 Breakeven Risk: {breakeven_ratio:.1%} of market (Medium)")
-                            else:
-                                st.error(f"🔴 Breakeven Risk: {breakeven_ratio:.1%} of market (High)")
                         else:
-                            st.info("No market benchmark available")
+                            st.error(f"🔴 Breakeven Risk: {breakeven_ratio:.1%} of market (High)")
                     else:
                         st.info("No market data for comparison")
                 except Exception:
@@ -191,59 +189,60 @@ with st.form("deal_input_form"):
                         'Costs +10%': deal.sensitivity.costs_up_10pct,
                     }
                 })
-            
-            # Save deal button
-            if st.button("💾 Save Deal", use_container_width=True):
-                try:
-                    # Create deal record
-                    deal_record = {
-                        'site_name': site_name,
-                        'city_key': selected_city,
-                        'land_area_sqm': land_area_sqm,
-                        'asking_price': asking_price,
-                        'taxes_fees': taxes_fees,
-                        'zoning': zoning,
-                        'far': far,
-                        'coverage': coverage,
-                        'max_floors': max_floors,
-                        'efficiency_ratio': efficiency_ratio,
-                        'expected_sale_price_psm': expected_sale_price_psm,
-                        'construction_cost_psm': construction_cost_psm,
-                        'soft_cost_pct': soft_cost_pct,
-                        'profit_target_pct': profit_target_pct,
-                        'access_width_m': access_width_m,
-                        'utilities': utilities,
-                        'date_analyzed': datetime.now().strftime('%Y-%m-%d'),
-                        # Analysis results
-                        'gross_buildable_sqm': deal.outputs.gross_buildable_sqm,
-                        'net_sellable_sqm': deal.outputs.net_sellable_sqm,
-                        'gdv': deal.outputs.gdv,
-                        'residual_land_value': deal.outputs.residual_land_value,
-                        'land_pct_gdv': deal.outputs.land_pct_gdv,
-                        'breakeven_sale_price': deal.outputs.breakeven_sale_price,
-                        'overall_score': deal.viability.overall_score,
-                        'overall_status': deal.viability.overall_status
-                    }
-                    
-                    # Load existing acquisitions or create new
-                    acquisitions_path = get_data_dir() / "processed" / "acquisitions.csv"
-                    
-                    if acquisitions_path.exists():
-                        existing_df = load_csv(acquisitions_path)
-                        # Append new deal
-                        new_df = pd.concat([existing_df, pd.DataFrame([deal_record])], ignore_index=True)
-                    else:
-                        new_df = pd.DataFrame([deal_record])
-                    
-                    # Save to CSV
-                    save_csv(new_df, acquisitions_path)
-                    
-                    st.success(f"✅ Deal '{site_name}' saved successfully!")
-                    st.info("Navigate to the Pipeline page to view all deals.")
-                    
-                except Exception as e:
-                    st.error(f"Error saving deal: {e}")
-                    
+                
         except Exception as e:
             st.error(f"Analysis failed: {e}")
             st.info("Please check your inputs and try again.")
+
+# Save deal button (outside form)
+if submitted and 'deal' in locals():
+    if st.button("💾 Save Deal", use_container_width=True):
+        try:
+            # Create deal record
+            deal_record = {
+                'site_name': site_name,
+                'city_key': selected_city,
+                'land_area_sqm': land_area_sqm,
+                'asking_price': asking_price,
+                'taxes_fees': taxes_fees,
+                'zoning': zoning,
+                'far': far,
+                'coverage': coverage,
+                'max_floors': max_floors,
+                'efficiency_ratio': efficiency_ratio,
+                'expected_sale_price_psm': expected_sale_price_psm,
+                'construction_cost_psm': construction_cost_psm,
+                'soft_cost_pct': soft_cost_pct,
+                'profit_target_pct': profit_target_pct,
+                'access_width_m': access_width_m,
+                'utilities': utilities,
+                'date_analyzed': datetime.now().strftime('%Y-%m-%d'),
+                # Analysis results
+                'gross_buildable_sqm': deal.outputs.gross_buildable_sqm,
+                'net_sellable_sqm': deal.outputs.net_sellable_sqm,
+                'gdv': deal.outputs.gdv,
+                'residual_land_value': deal.outputs.residual_land_value,
+                'land_pct_gdv': deal.outputs.land_pct_gdv,
+                'breakeven_sale_price': deal.outputs.breakeven_sale_price,
+                'overall_score': deal.viability.overall_score,
+                'overall_status': deal.viability.overall_status
+            }
+            
+            # Load existing acquisitions or create new
+            acquisitions_path = get_data_dir() / "processed" / "acquisitions.csv"
+            
+            if acquisitions_path.exists():
+                existing_df = load_csv(acquisitions_path)
+                # Append new deal
+                new_df = pd.concat([existing_df, pd.DataFrame([deal_record])], ignore_index=True)
+            else:
+                new_df = pd.DataFrame([deal_record])
+            
+            # Save to CSV
+            save_csv(new_df, acquisitions_path)
+            
+            st.success(f"✅ Deal '{site_name}' saved successfully!")
+            st.info("Navigate to the Pipeline page to view all deals.")
+            
+        except Exception as e:
+            st.error(f"Error saving deal: {e}")

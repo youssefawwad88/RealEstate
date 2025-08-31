@@ -144,8 +144,12 @@ try:
                         axis=1
                     )
                 
-                # Select final display columns
-                final_cols = ['site_name', 'city_key']
+                # Select final display columns dynamically based on what's available
+                final_cols = []
+                if 'site_name' in display_df.columns:
+                    final_cols.append('site_name')
+                if 'city_key' in display_df.columns:
+                    final_cols.append('city_key')
                 if 'Date' in display_df.columns:
                     final_cols.append('Date')
                 if 'Asking Price' in display_df.columns:
