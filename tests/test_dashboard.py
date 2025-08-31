@@ -58,10 +58,11 @@ class TestDashboardIntegration:
         assert deal.outputs.breakeven_sale_price > 0
         
         # Test new KPIs
-        assert deal.outputs.acq_cost_per_land_sqm is not None
-        assert deal.outputs.acq_cost_per_gfa_sqm is not None  
-        assert deal.outputs.land_cost_per_nsa_sqm is not None
-        assert deal.outputs.monthly_absorption_rate is not None
+        assert deal.outputs.nsa_sqm > 0
+        assert deal.outputs.acq_cost_per_land_sqm > 0
+        assert deal.outputs.acq_cost_per_buildable_sqm > 0
+        assert deal.outputs.land_cost_per_nsa > 0
+        assert deal.outputs.absorption_months > 0
         
         # Test viability scoring
         assert deal.viability is not None
@@ -257,8 +258,8 @@ class TestDashboardIntegration:
         
         # Test KPI calculations
         assert deal_with_far.outputs.acq_cost_per_land_sqm == 500.0  # 500000 / 1000
-        assert deal_with_far.outputs.acq_cost_per_gfa_sqm == 250.0   # 500000 / 2000
-        assert deal_with_far.outputs.monthly_absorption_rate == pytest.approx(1.0/12, rel=1e-2)
+        assert deal_with_far.outputs.acq_cost_per_buildable_sqm == 250.0   # 500000 / 2000
+        assert deal_with_far.outputs.absorption_months == 12.0
         
         # Test without FAR (fallback to coverage * floors)
         deal_inputs_without_far = deal_inputs_with_far.copy()
@@ -484,3 +485,63 @@ class TestSmokeTests:
         mod = importlib.util.module_from_spec(spec)
         # This will raise SyntaxError or IndentationError if file has issues
         spec.loader.exec_module(mod)
+
+    def test_add_deal_new_metrics_smoke_test(self):
+        """Smoke test that loads market CSV, navigates to Add Deal, and tests new metrics."""
+        from utils.market_loader import load_market_data, filter_allowed_markets
+        from modules.deal_model import create_deal_from_dict
+        
+        # Load market CSV
+        market_df = load_market_data()
+        filtered_df = filter_allowed_markets(market_df)
+        assert not filtered_df.empty, "Should have filtered market data"
+        
+        # Test "Add Deal" page workflow with default absorption
+        city = filtered_df['city_key'].iloc[0]  # Use first allowed city
+        city_data = filtered_df[filtered_df['city_key'] == city].iloc[0]
+        default_absorption = city_data['absorption_rate']
+        
+        # Run compute with default absorption
+        deal_inputs = {
+            'site_name': 'Smoke Test Site',
+            'land_area_sqm': 800.0,
+            'asking_price': 400000.0,
+            'taxes_fees': 20000.0,
+            'zoning': 'Mixed Use',
+            'far': 1.5,
+            'coverage': 0.4,
+            'max_floors': 4,
+            'efficiency_ratio': 0.8,
+            'expected_sale_price_psm': 3800.0,
+            'construction_cost_psm': 2000.0,
+            'soft_cost_pct': 0.15,
+            'profit_target_pct': 0.18,
+            'financing_cost': 35000.0,
+            'holding_period_months': 30,
+            'months_to_sell': int(default_absorption)  # Default from city
+        }
+        
+        deal_default = create_deal_from_dict(deal_inputs)
+        
+        # Run compute with absorption override
+        deal_inputs['months_to_sell'] = 20  # Override
+        deal_override = create_deal_from_dict(deal_inputs)
+        
+        # Assert the new metrics exist in the response
+        for deal in [deal_default, deal_override]:
+            assert hasattr(deal.outputs, 'nsa_sqm'), "Should have nsa_sqm metric"
+            assert hasattr(deal.outputs, 'acq_cost_per_land_sqm'), "Should have acq_cost_per_land_sqm metric"
+            assert hasattr(deal.outputs, 'acq_cost_per_buildable_sqm'), "Should have acq_cost_per_buildable_sqm metric" 
+            assert hasattr(deal.outputs, 'land_cost_per_nsa'), "Should have land_cost_per_nsa metric"
+            assert hasattr(deal.outputs, 'absorption_months'), "Should have absorption_months metric"
+            
+            # Verify values are reasonable
+            assert deal.outputs.nsa_sqm > 0
+            assert deal.outputs.acq_cost_per_land_sqm > 0
+            assert deal.outputs.acq_cost_per_buildable_sqm > 0
+            assert deal.outputs.land_cost_per_nsa > 0
+            assert deal.outputs.absorption_months > 0
+        
+        # Verify absorption override worked
+        assert deal_default.outputs.absorption_months == default_absorption
+        assert deal_override.outputs.absorption_months == 20.0

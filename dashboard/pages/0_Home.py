@@ -1,6 +1,9 @@
 # dashboard/pages/0_Home.py
 import streamlit as st
 
+# Page config
+st.set_page_config(layout="wide")
+
 st.title("🏗️ TerraFlow – Real Estate Development System")
 st.caption("Transforming land acquisition analysis into data-driven decisions")
 

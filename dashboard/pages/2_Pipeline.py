@@ -20,6 +20,9 @@ except ImportError as e:
     st.error(f"Import error: {e}")
     st.info("Make sure you're running from the project root directory")
 
+# Page config
+st.set_page_config(layout="wide")
+
 st.title("📊 Pipeline")
 st.markdown("View and filter your land acquisition deal pipeline.")
 

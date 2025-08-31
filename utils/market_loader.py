@@ -77,11 +77,11 @@ def filter_allowed_markets(market_df: pd.DataFrame) -> pd.DataFrame:
     """
     ALLOWED_CITIES = {
         # UAE
-        "dubai", "dubai_downtown", "dubai_marina",
-        # Cyprus (list both city & island-wide if present)
-        "limassol", "nicosia", "larnaca", "paphos", "cyprus",
+        "dubai",
+        # Cyprus
+        "limassol", "nicosia", "larnaca",
         # Greece
-        "athens", "thessaloniki", "heraklion", "greece"
+        "athens", "thessaloniki"
     }
     
     if 'city_key' not in market_df.columns:

@@ -42,7 +42,7 @@ class AcquisitionMetrics:
 
 def calculate_development_capacity(
     land_area_sqm: float,
-    far: float,
+    far: Optional[float],
     coverage: float,
     max_floors: int,
     efficiency_ratio: float
@@ -61,14 +61,19 @@ def calculate_development_capacity(
         DevelopmentCapacity with buildable areas and limiting factor
     """
     # Calculate buildable area under different constraints
-    buildable_by_far = land_area_sqm * far
     buildable_by_coverage = land_area_sqm * coverage * max_floors
     
-    # Take the minimum (most restrictive)
-    if buildable_by_far <= buildable_by_coverage:
-        gross_buildable_sqm = buildable_by_far
-        limiting_factor = "far"
+    if far is not None:
+        buildable_by_far = land_area_sqm * far
+        # Take the minimum (most restrictive)
+        if buildable_by_far <= buildable_by_coverage:
+            gross_buildable_sqm = buildable_by_far
+            limiting_factor = "far"
+        else:
+            gross_buildable_sqm = buildable_by_coverage  
+            limiting_factor = "coverage"
     else:
+        # No FAR constraint, use coverage only
         gross_buildable_sqm = buildable_by_coverage  
         limiting_factor = "coverage"
     
