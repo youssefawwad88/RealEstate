@@ -15,6 +15,7 @@ from .io import (
 from .market_loader import (
     load_market_benchmarks,
     filter_allowed_markets,
+    get_available_cities,
 )
 
 from .filelock import (
@@ -95,6 +96,7 @@ __all__ = [
     # Market data utilities
     "load_market_benchmarks",
     "filter_allowed_markets",
+    "get_available_cities",
     
     # File locking utilities
     "FileLock",
