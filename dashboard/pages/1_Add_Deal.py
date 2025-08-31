@@ -37,7 +37,6 @@ with col2:
     if st.button("Show Market Summary"):
         try:
             # Load market data for selected city using new loader
-            from utils.market_loader import load_market_benchmarks, filter_allowed_markets
             bench = load_market_benchmarks()
             bench = filter_allowed_markets(bench, allowed=(market,))
             city_data = bench
@@ -108,7 +107,6 @@ with st.form("deal_input_form"):
         utilities = st.selectbox("Utilities Available", ["Full", "Partial", "None"])
         # Get default absorption from city data
         try:
-            from utils.market_loader import load_market_benchmarks, filter_allowed_markets
             bench = load_market_benchmarks()
             bench = filter_allowed_markets(bench, allowed=(market,))
             if not bench.empty:
@@ -149,7 +147,6 @@ with st.form("deal_input_form"):
         
         try:
             # Load market benchmarks for the selected city
-            from utils.market_loader import load_market_benchmarks, filter_allowed_markets
             bench = load_market_benchmarks()
             bench = filter_allowed_markets(bench, allowed=(market,))
             market_row = bench.iloc[0].to_dict() if not bench.empty else None
@@ -200,10 +197,18 @@ with st.form("deal_input_form"):
             k7.metric("⏳ Est. Months to Sell", f"{out.est_absorption_months:,.1f}")
             k8.metric("🚀 Absorption / mo (sqm)", f"{out.est_absorption_rate_per_month:,.0f}")
             
+            # Only set session state after successful analysis
+            st.session_state['deal'] = out
+            st.session_state['deal_ready'] = True
+            
         except Exception as e:
             st.error(f"Analysis failed: {e}")
             st.info("Please check your inputs and try again.")
-            st.session_state['deal'] = out
+            # Clear deal session state on failure
+            if 'deal' in st.session_state:
+                del st.session_state['deal']
+            if 'deal_ready' in st.session_state:
+                del st.session_state['deal_ready']
 
 # Save deal button (outside form)
 if submitted and st.session_state.get('deal_ready', False):
