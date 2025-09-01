@@ -77,7 +77,8 @@ if len(display_df) > 0:
         
         st.bar_chart(
             chart_data.set_index('Market'),
-            height=400
+            height=400,
+            use_container_width=True
         )
     
     with chart_col2:
@@ -91,7 +92,8 @@ if len(display_df) > 0:
         
         st.line_chart(
             absorption_data.set_index('Market'),
-            height=400
+            height=400,
+            use_container_width=True
         )
 
     st.markdown("---")
