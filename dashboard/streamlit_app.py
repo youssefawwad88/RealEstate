@@ -19,6 +19,18 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Custom CSS for wide layout and improved styling
+st.markdown("""
+<style>
+/* widen the main block */
+.block-container {max-width: 1500px; padding-top: 1rem; padding-bottom: 3rem;}
+/* tighten vertical rhythm of forms */
+.stTextInput, .stNumberInput, .stSelectbox {margin-bottom: 0.35rem;}
+/* compact metrics */
+[data-testid="stMetricValue"] {font-size: 1.4rem;}
+</style>
+""", unsafe_allow_html=True)
+
 # Sidebar navigation
 st.sidebar.title("TerraFlow v2")
 st.sidebar.markdown("---")
