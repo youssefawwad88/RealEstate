@@ -1,1 +1,1 @@
-# Core package
+# core/__init__.py - empty (no re-exports)
