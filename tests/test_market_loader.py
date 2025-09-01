@@ -42,6 +42,12 @@ def test_load_market_benchmarks_valid_file():
         f.write("greece,24,4200,2100,350,200,600,2800,6500,1500,2800,0.18,0.28,0.16,3,3,4,2025-01-01\n")
         f.flush()
         
+        try:
+            df = load_market_benchmarks(f.name)
+            assert not df.empty
+            assert list(df.columns) == EXPECTED_COLS
+            assert 'dubai' in df['city_key'].str.lower().values
+        finally:
             if os.path.exists(f.name):
                 os.unlink(f.name)
 
