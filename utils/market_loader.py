@@ -9,7 +9,7 @@ import os
 
 # Constants
 ALLOWED_MARKETS_DEFAULT = ("dubai", "greece", "cyprus")
-REFERENCE_PATH = "data/reference/market_research.csv"
+REFERENCE_PATH = os.getenv("MARKET_RESEARCH_PATH", "data/reference/market_research.csv")
 EXPECTED_COLS = [
     "city_key", "land_comp_min", "land_comp_avg", "land_comp_max", 
     "sale_price_min", "sale_price_avg", "sale_price_max",
@@ -31,7 +31,7 @@ def load_market_benchmarks(path: Optional[str] = None) -> pd.DataFrame:
         DataFrame with market data or empty DataFrame with expected schema if file missing
     """
     if path is None:
-        path = os.environ.get("MARKET_DATA_PATH", REFERENCE_PATH)
+        path = REFERENCE_PATH
     
     file_path = Path(path)
     
